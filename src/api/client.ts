@@ -46,9 +46,14 @@ export class SkosmosClient {
   private readonly baseUrl: string;
   private readonly config: Config;
 
-  constructor(config: Config) {
+  constructor(config: Config, baseUrl?: string) {
     this.config = config;
-    this.baseUrl = config.baseUrl.replace(/\/$/, '') + '/rest/v1';
+    const urlToUse = baseUrl ?? config.baseUrl;
+    this.baseUrl = urlToUse.replace(/\/$/, '') + '/rest/v1';
+  }
+
+  withBaseUrl(baseUrl: string): SkosmosClient {
+    return new SkosmosClient(this.config, baseUrl);
   }
 
   private buildUrl(path: string, params: Record<string, string | number | boolean | undefined>): string {

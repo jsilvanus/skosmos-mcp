@@ -9,6 +9,7 @@ export interface TraversalOptions {
   relationships: ('broader' | 'narrower' | 'related')[];
   maxDepth: number;
   lang?: string;
+  client?: SkosmosClient;
 }
 
 interface QueueItem {
@@ -29,6 +30,7 @@ export class TraversalEngine {
 
   async traverse(options: TraversalOptions): Promise<TraversalResult> {
     const maxDepth = Math.min(options.maxDepth, this.config.maxTraversalDepth);
+    const clientToUse = options.client ?? this.client;
     const visited = new Set<string>();
     const nodes: TraversalNode[] = [];
     const edges: TraversalEdge[] = [];
@@ -60,7 +62,7 @@ export class TraversalEngine {
       let neighbors: ConceptRef[] = [];
 
       try {
-        neighbors = await this.fetchNeighbors(options.vocid, item.uri, item.relation, options.lang);
+        neighbors = await this.fetchNeighbors(clientToUse, options.vocid, item.uri, item.relation, options.lang);
       } catch (err) {
         logger.warn('Failed to fetch neighbors during traversal', {
           uri: item.uri,
@@ -106,6 +108,7 @@ export class TraversalEngine {
   }
 
   private async fetchNeighbors(
+    client: SkosmosClient,
     vocid: string,
     uri: string,
     relation: 'broader' | 'narrower' | 'related',
@@ -118,13 +121,13 @@ export class TraversalEngine {
       return ref;
     };
     if (relation === 'broader') {
-      const response = await this.client.getBroader(vocid, uri, lang);
+      const response = await client.getBroader(vocid, uri, lang);
       return (response.broader ?? []).map(toRef);
     } else if (relation === 'narrower') {
-      const response = await this.client.getNarrower(vocid, uri, lang);
+      const response = await client.getNarrower(vocid, uri, lang);
       return (response.narrower ?? []).map(toRef);
     } else {
-      const response = await this.client.getRelated(vocid, uri, lang);
+      const response = await client.getRelated(vocid, uri, lang);
       return (response.related ?? []).map(toRef);
     }
   }
@@ -134,12 +137,14 @@ export class TraversalEngine {
     uri: string,
     depth?: number,
     lang?: string,
+    client?: SkosmosClient,
   ): Promise<TraversalResult> {
     const opts: TraversalOptions = {
       vocid,
       uri,
       relationships: ['broader'],
       maxDepth: depth ?? this.config.maxTraversalDepth,
+      client,
     };
     if (lang !== undefined) opts.lang = lang;
     return this.traverse(opts);
@@ -150,12 +155,14 @@ export class TraversalEngine {
     uri: string,
     depth?: number,
     lang?: string,
+    client?: SkosmosClient,
   ): Promise<TraversalResult> {
     const opts: TraversalOptions = {
       vocid,
       uri,
       relationships: ['narrower'],
       maxDepth: depth ?? this.config.maxTraversalDepth,
+      client,
     };
     if (lang !== undefined) opts.lang = lang;
     return this.traverse(opts);
@@ -166,12 +173,14 @@ export class TraversalEngine {
     uri: string,
     depth?: number,
     lang?: string,
+    client?: SkosmosClient,
   ): Promise<TraversalResult> {
     const opts: TraversalOptions = {
       vocid,
       uri,
       relationships: ['related'],
       maxDepth: depth ?? this.config.maxTraversalDepth,
+      client,
     };
     if (lang !== undefined) opts.lang = lang;
     return this.traverse(opts);
@@ -183,12 +192,14 @@ export class TraversalEngine {
     relationships: ('broader' | 'narrower' | 'related')[],
     depth?: number,
     lang?: string,
+    client?: SkosmosClient,
   ): Promise<TraversalResult> {
     const opts: TraversalOptions = {
       vocid,
       uri,
       relationships,
       maxDepth: depth ?? this.config.maxTraversalDepth,
+      client,
     };
     if (lang !== undefined) opts.lang = lang;
     return this.traverse(opts);

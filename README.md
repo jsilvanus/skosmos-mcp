@@ -46,6 +46,7 @@ SKOSMOS_TIMEOUT=30000
 SKOSMOS_USER_AGENT=skosmos-mcp/0.1.0
 SKOSMOS_CACHE_TTL=300
 SKOSMOS_MAX_TRAVERSAL_DEPTH=3
+SKOSMOS_TOOL_SERVER_URL_ALLOWED=false
 ```
 
 | Variable | Default | Description |
@@ -57,6 +58,7 @@ SKOSMOS_MAX_TRAVERSAL_DEPTH=3
 | `SKOSMOS_USER_AGENT` | `skosmos-mcp/0.1.0` | User-Agent header sent with API requests |
 | `SKOSMOS_CACHE_TTL` | `300` | Cache entry TTL in seconds |
 | `SKOSMOS_MAX_TRAVERSAL_DEPTH` | `3` | Hard cap on BFS traversal depth |
+| `SKOSMOS_TOOL_SERVER_URL_ALLOWED` | `false` | When `true`, allows tools to accept optional `server_url` parameter to call a different Skosmos instance |
 | `LOG_LEVEL` | `info` | Log level: debug, info, warn, error (written to stderr) |
 | `MCP_HTTP_PORT` | `3000` | TCP port for the StreamableHTTP server |
 | `MCP_HTTP_HOST` | `127.0.0.1` | Bind address for the StreamableHTTP server |
@@ -253,7 +255,36 @@ Response includes `nodes` (with depth), `edges` (directed relationships), `rootU
 
 ---
 
-## Deployment
+## Using Optional Server URL Parameter
+
+All 13 MCP tools support an optional `server_url` parameter. When `SKOSMOS_TOOL_SERVER_URL_ALLOWED=true` is set in the environment, you can pass a `server_url` parameter to any tool to make it query a different Skosmos instance instead of the configured `SKOSMOS_BASE_URL`.
+
+### Example: Query a different Skosmos instance
+
+```json
+{
+  "tool": "get_concept",
+  "args": {
+    "uri": "http://www.yso.fi/onto/yso/p8966",
+    "vocabulary": "yso",
+    "lang": "en",
+    "server_url": "https://alternative-skosmos.example.org"
+  }
+}
+```
+
+This allows a single MCP session to interact with multiple Skosmos instances. The `server_url` parameter is:
+- **Optional** on all tools
+- **Ignored** unless `SKOSMOS_TOOL_SERVER_URL_ALLOWED=true` (default: `false`)
+- Can be any valid URL pointing to a Skosmos instance with a compatible REST API
+
+### Why use this feature?
+
+- Query multiple Skosmos instances in parallel within a single session
+- Test against different Skosmos servers without restarting the MCP
+- Support scenarios where vocabularies are distributed across multiple instances
+
+---
 
 ### stdio (standard MCP deployment)
 

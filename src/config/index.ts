@@ -10,6 +10,7 @@ const configSchema = z.object({
   maxTraversalDepth: z.number().int().positive().default(3),
   httpPort: z.number().int().positive().default(3000),
   httpHost: z.string().default('127.0.0.1'),
+  toolServerUrlAllowed: z.boolean().default(false),
 });
 
 export type Config = z.infer<typeof configSchema>;
@@ -31,5 +32,6 @@ export function loadConfig(): Config {
       : undefined,
     httpPort: process.env['MCP_HTTP_PORT'] ? parseInt(process.env['MCP_HTTP_PORT'], 10) : undefined,
     httpHost: process.env['MCP_HTTP_HOST'],
+    toolServerUrlAllowed: process.env['SKOSMOS_TOOL_SERVER_URL_ALLOWED'] === 'true',
   });
 }
