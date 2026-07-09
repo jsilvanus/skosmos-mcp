@@ -8,19 +8,29 @@ export const getConceptSchema = z.object({
   uri: z.string().url(),
   vocabulary: z.string().optional(),
   lang: z.string().optional(),
+  server_url: z.string().url().optional(),
 });
 
 export const getConceptLabelSchema = z.object({
   uri: z.string().url(),
   vocabulary: z.string().min(1),
   lang: z.string().optional(),
+  server_url: z.string().url().optional(),
 });
 
 export const conceptPathSchema = z.object({
   uri: z.string().url(),
   vocabulary: z.string().min(1),
   lang: z.string().optional(),
+  server_url: z.string().url().optional(),
 });
+
+function getClient(client: SkosmosClient, config: Config, serverUrl?: string): SkosmosClient {
+  if (serverUrl && config.toolServerUrlAllowed) {
+    return client.withBaseUrl(serverUrl);
+  }
+  return client;
+}
 
 export async function handleGetConcept(
   args: z.infer<typeof getConceptSchema>,
@@ -35,11 +45,13 @@ export async function handleGetConcept(
     throw new ApiError('vocabulary parameter is required when SKOSMOS_DEFAULT_VOCABULARY is not set', 400);
   }
 
+  const activeClient = getClient(client, config, args.server_url);
+
   const [labelRes, broaderRes, narrowerRes, relatedRes] = await Promise.all([
-    client.getConceptLabel(vocid, args.uri, lang),
-    client.getBroader(vocid, args.uri, lang),
-    client.getNarrower(vocid, args.uri, lang),
-    client.getRelated(vocid, args.uri, lang),
+    activeClient.getConceptLabel(vocid, args.uri, lang),
+    activeClient.getBroader(vocid, args.uri, lang),
+    activeClient.getNarrower(vocid, args.uri, lang),
+    activeClient.getRelated(vocid, args.uri, lang),
   ]);
 
   const result = {
@@ -66,7 +78,8 @@ export async function handleGetConceptLabel(
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
   }
 
-  const response = await client.getConceptLabel(args.vocabulary, args.uri, lang);
+  const activeClient = getClient(client, config, args.server_url);
+  const response = await activeClient.getConceptLabel(args.vocabulary, args.uri, lang);
   cache.labels.set(cacheKey, response);
   return { content: [{ type: 'text', text: JSON.stringify(response) }] };
 }
@@ -78,6 +91,7 @@ export async function handleConceptPath(
   config: Config,
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const lang = args.lang ?? config.defaultLanguage;
-  const response = await client.getHierarchy(args.vocabulary, args.uri, lang);
+  const activeClient = getClient(client, config, args.server_url);
+  const response = await activeClient.getHierarchy(args.vocabulary, args.uri, lang);
   return { content: [{ type: 'text', text: JSON.stringify(response) }] };
 }

@@ -78,7 +78,10 @@ export function createServer(
   server.tool(
     'list_vocabularies',
     'List all available vocabularies in the Skosmos instance',
-    { lang: z.string().optional().describe('Language code for labels (e.g. "en", "fi")') },
+    {
+      lang: z.string().optional().describe('Language code for labels (e.g. "en", "fi")'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
+    },
     wrapHandler(async (args) => handleListVocabularies(args, client, cacheManager, config)),
   );
 
@@ -88,6 +91,7 @@ export function createServer(
     {
       id: z.string().min(1).describe('Vocabulary identifier (e.g. "stw", "yso")'),
       lang: z.string().optional().describe('Language code for labels'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleGetVocabulary(args, client, cacheManager, config)),
   );
@@ -101,6 +105,7 @@ export function createServer(
       uri: z.string().url().describe('Concept URI'),
       vocabulary: z.string().optional().describe('Vocabulary identifier'),
       lang: z.string().optional().describe('Language code for labels'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleGetConcept(args, client, cacheManager, config)),
   );
@@ -112,6 +117,7 @@ export function createServer(
       uri: z.string().url().describe('Concept URI'),
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
       lang: z.string().optional().describe('Language code'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleGetConceptLabel(args, client, cacheManager, config)),
   );
@@ -123,6 +129,7 @@ export function createServer(
       uri: z.string().url().describe('Concept URI'),
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
       lang: z.string().optional().describe('Language code'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleConceptPath(args, client, cacheManager, config)),
   );
@@ -138,6 +145,7 @@ export function createServer(
       lang: z.string().optional().describe('Language code'),
       maxhits: z.number().int().positive().optional().describe('Maximum number of results'),
       offset: z.number().int().nonnegative().optional().describe('Result offset for pagination'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleSearchConcepts(args, client, cacheManager, config)),
   );
@@ -150,6 +158,7 @@ export function createServer(
       vocabulary: z.string().optional().describe('Limit to this vocabulary'),
       lang: z.string().optional().describe('Language code'),
       maxhits: z.number().int().positive().optional().describe('Maximum number of suggestions'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleAutocomplete(args, client, cacheManager, config)),
   );
@@ -161,6 +170,7 @@ export function createServer(
       text: z.string().min(1).describe('Label text to resolve'),
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
       lang: z.string().optional().describe('Language code'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleResolveLabel(args, client, cacheManager, config)),
   );
@@ -174,6 +184,7 @@ export function createServer(
       uri: z.string().url().describe('Concept URI'),
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
       lang: z.string().optional().describe('Language code'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleLabels(args, client, cacheManager, config)),
   );
@@ -188,6 +199,7 @@ export function createServer(
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
       depth: z.number().int().positive().optional().describe('Maximum traversal depth'),
       lang: z.string().optional().describe('Language code'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) =>
       handleBroaderConcepts(args, client, cacheManager, config, traversalEngine),
@@ -202,6 +214,7 @@ export function createServer(
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
       depth: z.number().int().positive().optional().describe('Maximum traversal depth'),
       lang: z.string().optional().describe('Language code'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) =>
       handleNarrowerConcepts(args, client, cacheManager, config, traversalEngine),
@@ -216,6 +229,7 @@ export function createServer(
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
       depth: z.number().int().positive().optional().describe('Maximum traversal depth'),
       lang: z.string().optional().describe('Language code'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) =>
       handleRelatedConcepts(args, client, cacheManager, config, traversalEngine),
@@ -234,6 +248,7 @@ export function createServer(
         .describe('Relationship types to traverse'),
       depth: z.number().int().positive().optional().describe('Maximum traversal depth'),
       lang: z.string().optional().describe('Language code'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) =>
       handleTraverseConcepts(args, client, cacheManager, config, traversalEngine),

@@ -9,6 +9,7 @@ export const broaderConceptsSchema = z.object({
   vocabulary: z.string().min(1),
   depth: z.number().int().positive().optional(),
   lang: z.string().optional(),
+  server_url: z.string().url().optional(),
 });
 
 export const narrowerConceptsSchema = z.object({
@@ -16,6 +17,7 @@ export const narrowerConceptsSchema = z.object({
   vocabulary: z.string().min(1),
   depth: z.number().int().positive().optional(),
   lang: z.string().optional(),
+  server_url: z.string().url().optional(),
 });
 
 export const relatedConceptsSchema = z.object({
@@ -23,6 +25,7 @@ export const relatedConceptsSchema = z.object({
   vocabulary: z.string().min(1),
   depth: z.number().int().positive().optional(),
   lang: z.string().optional(),
+  server_url: z.string().url().optional(),
 });
 
 export const traverseConceptsSchema = z.object({
@@ -31,11 +34,19 @@ export const traverseConceptsSchema = z.object({
   relationships: z.array(z.enum(['broader', 'narrower', 'related'])).min(1),
   depth: z.number().int().positive().optional(),
   lang: z.string().optional(),
+  server_url: z.string().url().optional(),
 });
+
+function getClient(client: SkosmosClient, config: Config, serverUrl?: string): SkosmosClient | undefined {
+  if (serverUrl && config.toolServerUrlAllowed) {
+    return client.withBaseUrl(serverUrl);
+  }
+  return undefined;
+}
 
 export async function handleBroaderConcepts(
   args: z.infer<typeof broaderConceptsSchema>,
-  _client: SkosmosClient,
+  client: SkosmosClient,
   cache: CacheManager,
   config: Config,
   traversal: TraversalEngine,
@@ -48,14 +59,15 @@ export async function handleBroaderConcepts(
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
   }
 
-  const result = await traversal.traverseBroader(args.vocabulary, args.uri, depth, lang);
+  const activeClient = getClient(client, config, args.server_url);
+  const result = await traversal.traverseBroader(args.vocabulary, args.uri, depth, lang, activeClient);
   cache.traversal.set(cacheKey, result);
   return { content: [{ type: 'text', text: JSON.stringify(result) }] };
 }
 
 export async function handleNarrowerConcepts(
   args: z.infer<typeof narrowerConceptsSchema>,
-  _client: SkosmosClient,
+  client: SkosmosClient,
   cache: CacheManager,
   config: Config,
   traversal: TraversalEngine,
@@ -68,14 +80,15 @@ export async function handleNarrowerConcepts(
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
   }
 
-  const result = await traversal.traverseNarrower(args.vocabulary, args.uri, depth, lang);
+  const activeClient = getClient(client, config, args.server_url);
+  const result = await traversal.traverseNarrower(args.vocabulary, args.uri, depth, lang, activeClient);
   cache.traversal.set(cacheKey, result);
   return { content: [{ type: 'text', text: JSON.stringify(result) }] };
 }
 
 export async function handleRelatedConcepts(
   args: z.infer<typeof relatedConceptsSchema>,
-  _client: SkosmosClient,
+  client: SkosmosClient,
   cache: CacheManager,
   config: Config,
   traversal: TraversalEngine,
@@ -88,14 +101,15 @@ export async function handleRelatedConcepts(
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
   }
 
-  const result = await traversal.traverseRelated(args.vocabulary, args.uri, depth, lang);
+  const activeClient = getClient(client, config, args.server_url);
+  const result = await traversal.traverseRelated(args.vocabulary, args.uri, depth, lang, activeClient);
   cache.traversal.set(cacheKey, result);
   return { content: [{ type: 'text', text: JSON.stringify(result) }] };
 }
 
 export async function handleTraverseConcepts(
   args: z.infer<typeof traverseConceptsSchema>,
-  _client: SkosmosClient,
+  client: SkosmosClient,
   cache: CacheManager,
   config: Config,
   traversal: TraversalEngine,
@@ -109,7 +123,8 @@ export async function handleTraverseConcepts(
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
   }
 
-  const result = await traversal.traverseMixed(args.vocabulary, args.uri, args.relationships, depth, lang);
+  const activeClient = getClient(client, config, args.server_url);
+  const result = await traversal.traverseMixed(args.vocabulary, args.uri, args.relationships, depth, lang, activeClient);
   cache.traversal.set(cacheKey, result);
   return { content: [{ type: 'text', text: JSON.stringify(result) }] };
 }

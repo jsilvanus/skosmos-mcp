@@ -5,18 +5,27 @@ import type { Config } from '../config/index.js';
 
 export const listVocabulariesSchema = z.object({
   lang: z.string().optional(),
+  server_url: z.string().url().optional(),
 });
 
 export const getVocabularySchema = z.object({
   id: z.string().min(1),
   lang: z.string().optional(),
+  server_url: z.string().url().optional(),
 });
+
+function getClient(client: SkosmosClient, config: Config, serverUrl?: string): SkosmosClient {
+  if (serverUrl && config.toolServerUrlAllowed) {
+    return client.withBaseUrl(serverUrl);
+  }
+  return client;
+}
 
 export async function handleListVocabularies(
   args: z.infer<typeof listVocabulariesSchema>,
   client: SkosmosClient,
   cache: CacheManager,
-  _config: Config,
+  config: Config,
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const cacheKey = `vocabularies:${args.lang ?? ''}`;
   const cached = cache.vocabularies.get(cacheKey);
@@ -24,7 +33,8 @@ export async function handleListVocabularies(
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
   }
 
-  const response = await client.getVocabularies(args.lang);
+  const activeClient = getClient(client, config, args.server_url);
+  const response = await activeClient.getVocabularies(args.lang);
   cache.vocabularies.set(cacheKey, response);
   return { content: [{ type: 'text', text: JSON.stringify(response) }] };
 }
@@ -39,15 +49,17 @@ export async function handleGetVocabulary(
   const cacheKey = `vocabulary:${args.id}:${lang}`;
   const cached = cache.vocabulary.get(cacheKey);
 
+  const activeClient = getClient(client, config, args.server_url);
+
   let vocabInfo;
   if (cached) {
     vocabInfo = cached;
   } else {
-    vocabInfo = await client.getVocabulary(args.id, lang);
+    vocabInfo = await activeClient.getVocabulary(args.id, lang);
     cache.vocabulary.set(cacheKey, vocabInfo);
   }
 
-  const topConcepts = await client.getTopConcepts(args.id, lang);
+  const topConcepts = await activeClient.getTopConcepts(args.id, lang);
 
   const result = {
     vocabulary: vocabInfo,

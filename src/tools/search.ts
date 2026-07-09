@@ -9,6 +9,7 @@ export const searchConceptsSchema = z.object({
   lang: z.string().optional(),
   maxhits: z.number().int().positive().optional(),
   offset: z.number().int().nonnegative().optional(),
+  server_url: z.string().url().optional(),
 });
 
 export const autocompleteSchema = z.object({
@@ -16,13 +17,22 @@ export const autocompleteSchema = z.object({
   vocabulary: z.string().optional(),
   lang: z.string().optional(),
   maxhits: z.number().int().positive().optional(),
+  server_url: z.string().url().optional(),
 });
 
 export const resolveLabelSchema = z.object({
   text: z.string().min(1),
   vocabulary: z.string().min(1),
   lang: z.string().optional(),
+  server_url: z.string().url().optional(),
 });
+
+function getClient(client: SkosmosClient, config: Config, serverUrl?: string): SkosmosClient {
+  if (serverUrl && config.toolServerUrlAllowed) {
+    return client.withBaseUrl(serverUrl);
+  }
+  return client;
+}
 
 export async function handleSearchConcepts(
   args: z.infer<typeof searchConceptsSchema>,
@@ -37,16 +47,18 @@ export async function handleSearchConcepts(
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
   }
 
+  const activeClient = getClient(client, config, args.server_url);
+
   let response;
   if (args.vocabulary) {
-    response = await client.searchInVocabulary(args.vocabulary, {
+    response = await activeClient.searchInVocabulary(args.vocabulary, {
       query: args.query,
       lang,
       ...(args.maxhits !== undefined && { maxhits: args.maxhits }),
       ...(args.offset !== undefined && { offset: args.offset }),
     });
   } else {
-    response = await client.search({
+    response = await activeClient.search({
       query: args.query,
       lang,
       ...(args.maxhits !== undefined && { maxhits: args.maxhits }),
@@ -65,17 +77,18 @@ export async function handleAutocomplete(
   config: Config,
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const lang = args.lang ?? config.defaultLanguage;
+  const activeClient = getClient(client, config, args.server_url);
 
   let response;
   if (args.vocabulary) {
-    response = await client.searchInVocabulary(args.vocabulary, {
+    response = await activeClient.searchInVocabulary(args.vocabulary, {
       query: args.prefix + '*',
       lang,
       ...(args.maxhits !== undefined && { maxhits: args.maxhits }),
       unique: true,
     });
   } else {
-    response = await client.search({
+    response = await activeClient.search({
       query: args.prefix + '*',
       lang,
       ...(args.maxhits !== undefined && { maxhits: args.maxhits }),
@@ -93,6 +106,7 @@ export async function handleResolveLabel(
   config: Config,
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const lang = args.lang ?? config.defaultLanguage;
-  const response = await client.lookup(args.vocabulary, args.text, lang);
+  const activeClient = getClient(client, config, args.server_url);
+  const response = await activeClient.lookup(args.vocabulary, args.text, lang);
   return { content: [{ type: 'text', text: JSON.stringify(response) }] };
 }

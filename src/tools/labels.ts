@@ -7,7 +7,15 @@ export const labelsSchema = z.object({
   uri: z.string().url(),
   vocabulary: z.string().min(1),
   lang: z.string().optional(),
+  server_url: z.string().url().optional(),
 });
+
+function getClient(client: SkosmosClient, config: Config, serverUrl?: string): SkosmosClient {
+  if (serverUrl && config.toolServerUrlAllowed) {
+    return client.withBaseUrl(serverUrl);
+  }
+  return client;
+}
 
 export async function handleLabels(
   args: z.infer<typeof labelsSchema>,
@@ -22,7 +30,8 @@ export async function handleLabels(
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
   }
 
-  const response = await client.getConceptLabel(args.vocabulary, args.uri, lang);
+  const activeClient = getClient(client, config, args.server_url);
+  const response = await activeClient.getConceptLabel(args.vocabulary, args.uri, lang);
   cache.labels.set(cacheKey, response);
   return { content: [{ type: 'text', text: JSON.stringify(response) }] };
 }
