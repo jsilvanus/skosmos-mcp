@@ -12,7 +12,7 @@
 			}
 		},
 		"Skosmos MCP": {
-			"type": "sse",
+			"type": "StreamableHttp",
 			"url": "https://skosmos.italeino.fi/mcp"
 		}
 	},
