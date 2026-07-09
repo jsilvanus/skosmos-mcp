@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { SkosmosClient } from '../api/client.js';
 import type { CacheManager } from '../cache/index.js';
 import type { Config } from '../config/index.js';
+import { CacheKeys } from '../cache/keys.js';
 import { ApiError } from '../util/errors.js';
 import { getClient } from './utils.js';
 
@@ -66,7 +67,7 @@ export async function handleGetConceptLabel(
   config: Config,
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const lang = args.lang ?? config.defaultLanguage;
-  const cacheKey = `label:${args.vocabulary}:${args.uri}:${lang}`;
+  const cacheKey = CacheKeys.conceptLabel(args.uri, args.vocabulary, lang, args.server_url);
   const cached = cache.labels.get(cacheKey);
   if (cached) {
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };

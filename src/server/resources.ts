@@ -2,6 +2,7 @@ import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mc
 import type { SkosmosClient } from '../api/client.js';
 import type { CacheManager } from '../cache/index.js';
 import type { Config } from '../config/index.js';
+import { CacheKeys } from '../cache/keys.js';
 
 export function registerResources(
   server: McpServer,
@@ -12,7 +13,7 @@ export function registerResources(
   // Static resource: list of all vocabularies
   server.resource('vocabularies', 'skosmos://vocabularies', async (_uri) => {
     const lang = config.defaultLanguage;
-    const cacheKey = `vocabularies:${lang}`;
+    const cacheKey = CacheKeys.listVocabularies(lang);
     let data = cache.vocabularies.get(cacheKey);
     if (!data) {
       data = await client.getVocabularies(lang);
@@ -39,7 +40,7 @@ export function registerResources(
         throw new Error('Missing vocid parameter');
       }
       const lang = config.defaultLanguage;
-      const cacheKey = `vocabulary:${vocid}:${lang}`;
+      const cacheKey = CacheKeys.getVocabulary(vocid, lang);
       let data = cache.vocabulary.get(cacheKey);
       if (!data) {
         data = await client.getVocabulary(vocid, lang);
@@ -73,7 +74,7 @@ export function registerResources(
 
       const conceptUri = decodeURIComponent(encodedUri);
       const lang = config.defaultLanguage;
-      const cacheKey = `label:${vocid}:${conceptUri}:${lang}`;
+      const cacheKey = CacheKeys.conceptLabel(conceptUri, vocid, lang);
 
       let labelData = cache.labels.get(cacheKey);
       if (!labelData) {

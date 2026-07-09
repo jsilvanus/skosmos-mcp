@@ -3,6 +3,7 @@ import type { SkosmosClient } from '../api/client.js';
 import type { CacheManager } from '../cache/index.js';
 import type { Config } from '../config/index.js';
 import type { TraversalEngine } from '../traversal/engine.js';
+import { CacheKeys } from '../cache/keys.js';
 import { getClient } from './utils.js';
 
 export const broaderConceptsSchema = z.object({
@@ -47,7 +48,7 @@ export async function handleBroaderConcepts(
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const lang = args.lang ?? config.defaultLanguage;
   const depth = Math.min(args.depth ?? config.maxTraversalDepth, config.maxTraversalDepth);
-  const cacheKey = `traversal:broader:${args.vocabulary}:${args.uri}:${depth}:${lang}`;
+  const cacheKey = CacheKeys.traversal(args.uri, args.vocabulary, 'broader', lang, depth, undefined, args.server_url);
   const cached = cache.traversal.get(cacheKey);
   if (cached) {
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
@@ -68,7 +69,7 @@ export async function handleNarrowerConcepts(
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const lang = args.lang ?? config.defaultLanguage;
   const depth = Math.min(args.depth ?? config.maxTraversalDepth, config.maxTraversalDepth);
-  const cacheKey = `traversal:narrower:${args.vocabulary}:${args.uri}:${depth}:${lang}`;
+  const cacheKey = CacheKeys.traversal(args.uri, args.vocabulary, 'narrower', lang, depth, undefined, args.server_url);
   const cached = cache.traversal.get(cacheKey);
   if (cached) {
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
@@ -89,7 +90,7 @@ export async function handleRelatedConcepts(
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const lang = args.lang ?? config.defaultLanguage;
   const depth = Math.min(args.depth ?? config.maxTraversalDepth, config.maxTraversalDepth);
-  const cacheKey = `traversal:related:${args.vocabulary}:${args.uri}:${depth}:${lang}`;
+  const cacheKey = CacheKeys.traversal(args.uri, args.vocabulary, 'related', lang, depth, undefined, args.server_url);
   const cached = cache.traversal.get(cacheKey);
   if (cached) {
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
@@ -110,8 +111,15 @@ export async function handleTraverseConcepts(
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const lang = args.lang ?? config.defaultLanguage;
   const depth = Math.min(args.depth ?? config.maxTraversalDepth, config.maxTraversalDepth);
-  const relsKey = [...args.relationships].sort().join(',');
-  const cacheKey = `traversal:mixed:${args.vocabulary}:${args.uri}:${relsKey}:${depth}:${lang}`;
+  const cacheKey = CacheKeys.traversal(
+    args.uri,
+    args.vocabulary,
+    'traverse',
+    lang,
+    depth,
+    args.relationships,
+    args.server_url,
+  );
   const cached = cache.traversal.get(cacheKey);
   if (cached) {
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
