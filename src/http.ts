@@ -20,6 +20,13 @@ async function main(): Promise<void> {
     httpPort: config.httpPort,
   });
 
+  if (config.toolServerUrlAllowed || config.sparqlAllowOtherEndpoints) {
+    logger.warn('Alternate Skosmos or SPARQL endpoints are enabled; this may be a security risk.', {
+      toolServerUrlAllowed: config.toolServerUrlAllowed,
+      sparqlAllowOtherEndpoints: config.sparqlAllowOtherEndpoints,
+    });
+  }
+
   const client = new SkosmosClient(config);
   const cacheManager = new CacheManager(config.cacheTtl);
   const traversalEngine = new TraversalEngine(client, config);

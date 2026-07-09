@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const configSchema = z.object({
-  baseUrl: z.string().url(),
+  baseUrl: z.string().url().default('https://api.finto.fi'),
   defaultVocabulary: z.string().optional(),
   defaultLanguage: z.string().default('en'),
   timeout: z.number().int().positive().default(30000),
@@ -10,11 +10,11 @@ const configSchema = z.object({
   maxTraversalDepth: z.number().int().positive().default(3),
   httpPort: z.number().int().positive().default(3000),
   httpHost: z.string().default('127.0.0.1'),
-  toolServerUrlAllowed: z.boolean().default(false),
-  sparqlEndpoint: z.string().url().optional(),
+  toolServerUrlAllowed: z.boolean().default(true),
+  sparqlEndpoint: z.string().url().default('https://api.finto.fi/sparql'),
   sparqlUsername: z.string().optional(),
   sparqlPassword: z.string().optional(),
-  sparqlAllowOtherEndpoints: z.boolean().default(false),
+  sparqlAllowOtherEndpoints: z.boolean().default(true),
 });
 
 export type Config = z.infer<typeof configSchema>;
@@ -36,11 +36,17 @@ export function loadConfig(): Config {
       : undefined,
     httpPort: process.env['MCP_HTTP_PORT'] ? parseInt(process.env['MCP_HTTP_PORT'], 10) : undefined,
     httpHost: process.env['MCP_HTTP_HOST'],
-    toolServerUrlAllowed: process.env['SKOSMOS_TOOL_SERVER_URL_ALLOWED'] === 'true',
+    toolServerUrlAllowed:
+      process.env['SKOSMOS_TOOL_SERVER_URL_ALLOWED'] === undefined
+        ? undefined
+        : process.env['SKOSMOS_TOOL_SERVER_URL_ALLOWED'] === 'true',
     sparqlEndpoint: process.env['SPARQL_ENDPOINT_URL'] || undefined,
     sparqlUsername: process.env['SPARQL_USERNAME'] || undefined,
     sparqlPassword: process.env['SPARQL_PASSWORD'] || undefined,
-    sparqlAllowOtherEndpoints: process.env['SPARQL_ALLOW_OTHER_ENDPOINTS'] === 'true',
+    sparqlAllowOtherEndpoints:
+      process.env['SPARQL_ALLOW_OTHER_ENDPOINTS'] === undefined
+        ? undefined
+        : process.env['SPARQL_ALLOW_OTHER_ENDPOINTS'] === 'true',
   });
 }
 

@@ -12,9 +12,9 @@ describe('loadConfig', () => {
     process.env = originalEnv;
   });
 
-  it('throws when SKOSMOS_BASE_URL is missing', () => {
+  it('uses the Finto URL when SKOSMOS_BASE_URL is missing', () => {
     delete process.env['SKOSMOS_BASE_URL'];
-    expect(() => loadConfig()).toThrow();
+    expect(loadConfig().baseUrl).toBe('https://api.finto.fi');
   });
 
   it('throws when SKOSMOS_BASE_URL is not a valid URL', () => {
@@ -23,7 +23,7 @@ describe('loadConfig', () => {
   });
 
   it('parses valid config with all defaults', () => {
-    process.env['SKOSMOS_BASE_URL'] = 'https://skosmos.example.org';
+    process.env['SKOSMOS_BASE_URL'] = 'https://api.finto.fi';
     delete process.env['SKOSMOS_DEFAULT_LANGUAGE'];
     delete process.env['SKOSMOS_TIMEOUT'];
     delete process.env['SKOSMOS_CACHE_TTL'];
@@ -33,7 +33,7 @@ describe('loadConfig', () => {
     delete process.env['MCP_HTTP_HOST'];
 
     const config = loadConfig();
-    expect(config.baseUrl).toBe('https://skosmos.example.org');
+    expect(config.baseUrl).toBe('https://api.finto.fi');
     expect(config.defaultLanguage).toBe('en');
     expect(config.timeout).toBe(30000);
     expect(config.cacheTtl).toBe(300);
@@ -65,7 +65,7 @@ describe('loadConfig', () => {
   });
 
   it('sets defaultVocabulary when env var is provided', () => {
-    process.env['SKOSMOS_BASE_URL'] = 'https://skosmos.example.org';
+    process.env['SKOSMOS_BASE_URL'] = 'https://api.finto.fi';
     process.env['SKOSMOS_DEFAULT_VOCABULARY'] = 'yso';
 
     const config = loadConfig();
@@ -73,7 +73,7 @@ describe('loadConfig', () => {
   });
 
   it('sets sparqlAllowOtherEndpoints when env var is provided', () => {
-    process.env['SKOSMOS_BASE_URL'] = 'https://skosmos.example.org';
+    process.env['SKOSMOS_BASE_URL'] = 'https://api.finto.fi';
     process.env['SPARQL_ALLOW_OTHER_ENDPOINTS'] = 'true';
 
     const config = loadConfig();
@@ -81,18 +81,18 @@ describe('loadConfig', () => {
   });
 
   it('leaves sparqlAllowOtherEndpoints false when env var is false', () => {
-    process.env['SKOSMOS_BASE_URL'] = 'https://skosmos.example.org';
+    process.env['SKOSMOS_BASE_URL'] = 'https://api.finto.fi';
     process.env['SPARQL_ALLOW_OTHER_ENDPOINTS'] = 'false';
 
     const config = loadConfig();
     expect(config.sparqlAllowOtherEndpoints).toBe(false);
   });
 
-  it('leaves sparqlAllowOtherEndpoints false when env var is not provided', () => {
-    process.env['SKOSMOS_BASE_URL'] = 'https://skosmos.example.org';
+  it('defaults sparqlAllowOtherEndpoints to true when env var is not provided', () => {
+    process.env['SKOSMOS_BASE_URL'] = 'https://api.finto.fi';
     delete process.env['SPARQL_ALLOW_OTHER_ENDPOINTS'];
 
     const config = loadConfig();
-    expect(config.sparqlAllowOtherEndpoints).toBe(false);
+    expect(config.sparqlAllowOtherEndpoints).toBe(true);
   });
 });

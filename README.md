@@ -41,7 +41,9 @@ Build and run the Streamable HTTP MCP server in a container:
 docker compose up --build -d
 ```
 
-This starts the server on port `3000` and uses Docker Compose's `restart: unless-stopped` policy so it will come back up automatically after crashes. The container reads the same environment variables as the local app, so copy `.env.example` to `.env` and set `SKOSMOS_BASE_URL` before starting it.
+This starts the Streamable HTTP MCP server on port `3000` and uses Docker Compose's `restart: unless-stopped` policy so it will come back up automatically after crashes. The image defaults to the Finto endpoints, runs the HTTP MCP server on `0.0.0.0:3000`, and enables alternate Skosmos/SPARQL connections by default. The container logs a warning at startup when those options are enabled because allowing other endpoints can be a security risk. The container reads the same environment variables as the local app, so copy `.env.example` to `.env` if you want to override those defaults.
+
+Releases also publish a container image to GitHub Container Registry via GitHub Actions. The workflow builds the image from the Dockerfile and pushes it with the release tag plus `latest` for the default branch.
 
 ---
 
@@ -50,20 +52,20 @@ This starts the server on port `3000` and uses Docker Compose's `restart: unless
 Copy `.env.example` to `.env` and fill in values:
 
 ```env
-SKOSMOS_BASE_URL=https://skosmos.example.org    # required
+SKOSMOS_BASE_URL=https://api.finto.fi    # required
 SKOSMOS_DEFAULT_VOCABULARY=                      # optional
 SKOSMOS_DEFAULT_LANGUAGE=en
 SKOSMOS_TIMEOUT=30000
-SKOSMOS_USER_AGENT=skosmos-mcp/0.1.0
+SKOSMOS_USER_AGENT=skosmos-mcp/0.2.0
 SKOSMOS_CACHE_TTL=300
-SKOSMOS_MAX_TRAVERSAL_DEPTH=3
-SKOSMOS_TOOL_SERVER_URL_ALLOWED=false
+SKOSMOS_MAX_TRAVERSAL_DEPTH=5
+SKOSMOS_TOOL_SERVER_URL_ALLOWED=true
 
 # SPARQL Configuration (optional)
-SPARQL_ENDPOINT_URL=http://localhost:3030/ds/query
+SPARQL_ENDPOINT_URL=https://api.finto.fi/sparql
 SPARQL_USERNAME=
 SPARQL_PASSWORD=
-SPARQL_ALLOW_OTHER_ENDPOINTS=false
+SPARQL_ALLOW_OTHER_ENDPOINTS=true
 ```
 
 | Variable | Default | Description |
