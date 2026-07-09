@@ -144,9 +144,9 @@ export class TraversalEngine {
       uri,
       relationships: ['broader'],
       maxDepth: depth ?? this.config.maxTraversalDepth,
-      client,
     };
     if (lang !== undefined) opts.lang = lang;
+    if (client !== undefined) opts.client = client;
     return this.traverse(opts);
   }
 
@@ -162,9 +162,9 @@ export class TraversalEngine {
       uri,
       relationships: ['narrower'],
       maxDepth: depth ?? this.config.maxTraversalDepth,
-      client,
     };
     if (lang !== undefined) opts.lang = lang;
+    if (client !== undefined) opts.client = client;
     return this.traverse(opts);
   }
 
@@ -180,9 +180,9 @@ export class TraversalEngine {
       uri,
       relationships: ['related'],
       maxDepth: depth ?? this.config.maxTraversalDepth,
-      client,
     };
     if (lang !== undefined) opts.lang = lang;
+    if (client !== undefined) opts.client = client;
     return this.traverse(opts);
   }
 
@@ -199,9 +199,9 @@ export class TraversalEngine {
       uri,
       relationships,
       maxDepth: depth ?? this.config.maxTraversalDepth,
-      client,
     };
     if (lang !== undefined) opts.lang = lang;
+    if (client !== undefined) opts.client = client;
     return this.traverse(opts);
   }
 }
