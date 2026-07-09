@@ -80,6 +80,14 @@ describe('loadConfig', () => {
     expect(config.sparqlAllowOtherEndpoints).toBe(true);
   });
 
+  it('leaves sparqlAllowOtherEndpoints false when env var is false', () => {
+    process.env['SKOSMOS_BASE_URL'] = 'https://skosmos.example.org';
+    process.env['SPARQL_ALLOW_OTHER_ENDPOINTS'] = 'false';
+
+    const config = loadConfig();
+    expect(config.sparqlAllowOtherEndpoints).toBe(false);
+  });
+
   it('leaves sparqlAllowOtherEndpoints false when env var is not provided', () => {
     process.env['SKOSMOS_BASE_URL'] = 'https://skosmos.example.org';
     delete process.env['SPARQL_ALLOW_OTHER_ENDPOINTS'];
