@@ -268,7 +268,7 @@ SKOSMOS_BASE_URL=https://skosmos.example.org MCP_HTTP_PORT=3000 node dist/http.j
 ```
 
 The server listens on `http://<MCP_HTTP_HOST>:<MCP_HTTP_PORT>/mcp` (default: `http://127.0.0.1:3000/mcp`).
-Each POST request is handled as a stateless MCP session.
+Each POST request is handled as a stateless MCP session (no session ID). The `SkosmosClient` and `CacheManager` instances are shared across requests for the lifetime of the process.
 
 ### Claude Desktop (`claude_desktop_config.json`)
 

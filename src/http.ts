@@ -31,6 +31,7 @@ async function main(): Promise<void> {
     // Stateless mode: no sessionIdGenerator
     const transport = new StreamableHTTPServerTransport({});
     await server.connect(transport as unknown as Transport);
+    // req.body is populated by the express.json() middleware in createMcpExpressApp
     await transport.handleRequest(req, res, (req as { body?: unknown }).body);
   });
 
