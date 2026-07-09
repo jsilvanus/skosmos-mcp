@@ -9,10 +9,11 @@ import type { Config } from '../config/index.js';
 export function getClient(
   client: SkosmosClient,
   config: Config,
-  serverUrl?: string,
+  server_url?: string,
 ): SkosmosClient {
-  if (serverUrl && config.toolServerUrlAllowed) {
-    return client.withBaseUrl(serverUrl);
+  if (server_url && config.toolServerUrlAllowed) {
+    return client.withBaseUrl(server_url);
   }
   return client;
 }
+

@@ -30,7 +30,7 @@ export class TraversalEngine {
 
   async traverse(options: TraversalOptions): Promise<TraversalResult> {
     const maxDepth = Math.min(options.maxDepth, this.config.maxTraversalDepth);
-    const activeClient = options.client ?? this.client;
+    const clientToUse = options.client ?? this.client;
     const visited = new Set<string>();
     const nodes: TraversalNode[] = [];
     const edges: TraversalEdge[] = [];
@@ -62,7 +62,7 @@ export class TraversalEngine {
       let neighbors: ConceptRef[] = [];
 
       try {
-        neighbors = await this.fetchNeighbors(activeClient, options.vocid, item.uri, item.relation, options.lang);
+        neighbors = await this.fetchNeighbors(clientToUse, options.vocid, item.uri, item.relation, options.lang);
       } catch (err) {
         logger.warn('Failed to fetch neighbors during traversal', {
           uri: item.uri,
