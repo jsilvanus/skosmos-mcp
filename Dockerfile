@@ -10,7 +10,7 @@ ENV NODE_ENV=production \
     SPARQL_ALLOW_OTHER_ENDPOINTS=false
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 COPY . .
 RUN npm run build
