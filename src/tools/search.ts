@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { SkosmosClient } from '../api/client.js';
 import type { CacheManager } from '../cache/index.js';
 import type { Config } from '../config/index.js';
+import { getClient } from './utils.js';
 
 export const searchConceptsSchema = z.object({
   query: z.string().min(1),
@@ -26,13 +27,6 @@ export const resolveLabelSchema = z.object({
   lang: z.string().optional(),
   server_url: z.string().url().optional(),
 });
-
-function getClient(client: SkosmosClient, config: Config, serverUrl?: string): SkosmosClient {
-  if (serverUrl && config.toolServerUrlAllowed) {
-    return client.withBaseUrl(serverUrl);
-  }
-  return client;
-}
 
 export async function handleSearchConcepts(
   args: z.infer<typeof searchConceptsSchema>,

@@ -3,6 +3,7 @@ import type { SkosmosClient } from '../api/client.js';
 import type { CacheManager } from '../cache/index.js';
 import type { Config } from '../config/index.js';
 import type { TraversalEngine } from '../traversal/engine.js';
+import { getClient } from './utils.js';
 
 export const broaderConceptsSchema = z.object({
   uri: z.string().url(),
@@ -36,13 +37,6 @@ export const traverseConceptsSchema = z.object({
   lang: z.string().optional(),
   server_url: z.string().url().optional(),
 });
-
-function getClient(client: SkosmosClient, config: Config, serverUrl?: string): SkosmosClient {
-  if (serverUrl && config.toolServerUrlAllowed) {
-    return client.withBaseUrl(serverUrl);
-  }
-  return client;
-}
 
 export async function handleBroaderConcepts(
   args: z.infer<typeof broaderConceptsSchema>,
