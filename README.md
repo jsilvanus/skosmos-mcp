@@ -43,7 +43,29 @@ docker compose up --build -d
 
 This starts the Streamable HTTP MCP server on port `3000` and uses Docker Compose's `restart: unless-stopped` policy so it will come back up automatically after crashes. The image defaults to the Finto endpoints, runs the HTTP MCP server on `0.0.0.0:3000`, and enables alternate Skosmos/SPARQL connections by default. The container logs a warning at startup when those options are enabled because allowing other endpoints can be a security risk. The container reads the same environment variables as the local app, so copy `.env.example` to `.env` if you want to override those defaults.
 
-Releases also publish a container image to GitHub Container Registry via GitHub Actions. The workflow builds the image from the Dockerfile and pushes it with the release tag plus `latest` for the default branch.
+#### Container Images from GitHub Container Registry
+
+Releases publish two container image variants to [GitHub Container Registry (GHCR)](https://docs.github.com/en/packages/working-with-a-package-registry/working-with-the-container-registry):
+
+**HTTP variant** (for remote access via HTTP):
+```bash
+docker pull ghcr.io/jsilvanus/skosmos-mcp:http
+docker pull ghcr.io/jsilvanus/skosmos-mcp:http-latest
+# Or use a specific release version:
+docker pull ghcr.io/jsilvanus/skosmos-mcp:v0.2.1-http
+```
+
+**Stdio variant** (for local stdio MCP protocol):
+```bash
+docker pull ghcr.io/jsilvanus/skosmos-mcp:stdio
+docker pull ghcr.io/jsilvanus/skosmos-mcp:stdio-latest
+# Or use a specific release version:
+docker pull ghcr.io/jsilvanus/skosmos-mcp:v0.2.1-stdio
+```
+
+Each release publishes both variants automatically. Choose the one that matches your use case:
+- **HTTP variant**: Runs an HTTP server on port 3000, suitable for remote access or web-based MCP clients
+- **Stdio variant**: Uses stdin/stdout for the MCP protocol, suitable for local integration with AI assistants or other MCP clients
 
 ---
 

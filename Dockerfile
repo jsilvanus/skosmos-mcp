@@ -1,4 +1,5 @@
-FROM node:20-alpine
+# Base stage with dependencies and build
+FROM node:20-alpine AS base
 
 WORKDIR /app
 
@@ -9,6 +10,11 @@ COPY . .
 RUN npm run build
 RUN npm prune --omit=dev
 
+# HTTP variant stage
+FROM node:20-alpine AS http
+
+WORKDIR /app
+
 ENV NODE_ENV=production \
     SKOSMOS_BASE_URL=https://api.finto.fi \
     SPARQL_ENDPOINT_URL=https://api.finto.fi/sparql \
@@ -17,6 +23,27 @@ ENV NODE_ENV=production \
     SKOSMOS_TOOL_SERVER_URL_ALLOWED=true \
     SPARQL_ALLOW_OTHER_ENDPOINTS=true
 
+COPY --from=base /app/dist ./dist
+COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/package.json ./package.json
+
 EXPOSE 3000
 
 CMD ["node", "dist/http.js"]
+
+# Stdio variant stage
+FROM node:20-alpine AS stdio
+
+WORKDIR /app
+
+ENV NODE_ENV=production \
+    SKOSMOS_BASE_URL=https://api.finto.fi \
+    SPARQL_ENDPOINT_URL=https://api.finto.fi/sparql \
+    SKOSMOS_TOOL_SERVER_URL_ALLOWED=true \
+    SPARQL_ALLOW_OTHER_ENDPOINTS=true
+
+COPY --from=base /app/dist ./dist
+COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/package.json ./package.json
+
+CMD ["node", "dist/index.js"]
