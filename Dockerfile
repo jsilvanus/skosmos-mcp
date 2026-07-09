@@ -22,8 +22,8 @@ ENV NODE_ENV=production \
     SPARQL_ENDPOINT_URL=https://api.finto.fi/sparql \
     MCP_HTTP_HOST=0.0.0.0 \
     MCP_HTTP_PORT=3000 \
-    SKOSMOS_TOOL_SERVER_URL_ALLOWED=true \
-    SPARQL_ALLOW_OTHER_ENDPOINTS=true
+    SKOSMOS_TOOL_SERVER_URL_ALLOWED=false \
+    SPARQL_ALLOW_OTHER_ENDPOINTS=false
 
 # Note: COPY statements cannot be moved to base stage because COPY --from=base
 # only copies files from base, it doesn't inherit the base's environment or filesystem.
@@ -45,8 +45,8 @@ WORKDIR /app
 ENV NODE_ENV=production \
     SKOSMOS_BASE_URL=https://api.finto.fi \
     SPARQL_ENDPOINT_URL=https://api.finto.fi/sparql \
-    SKOSMOS_TOOL_SERVER_URL_ALLOWED=true \
-    SPARQL_ALLOW_OTHER_ENDPOINTS=true
+    SKOSMOS_TOOL_SERVER_URL_ALLOWED=false \
+    SPARQL_ALLOW_OTHER_ENDPOINTS=false
 
 # Note: COPY statements cannot be moved to base stage because COPY --from=base
 # only copies files from base, it doesn't inherit the base's environment or filesystem.
