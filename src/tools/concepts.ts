@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { SkosmosClient } from '../api/client.js';
 import type { CacheManager } from '../cache/index.js';
 import type { Config } from '../config/index.js';
+import { ApiError } from '../util/errors.js';
 
 export const getConceptSchema = z.object({
   uri: z.string().url(),
@@ -31,7 +32,7 @@ export async function handleGetConcept(
   const vocid = args.vocabulary ?? config.defaultVocabulary;
 
   if (!vocid) {
-    throw new Error('vocabulary parameter is required when SKOSMOS_DEFAULT_VOCABULARY is not set');
+    throw new ApiError('vocabulary parameter is required when SKOSMOS_DEFAULT_VOCABULARY is not set', 400);
   }
 
   const [labelRes, broaderRes, narrowerRes, relatedRes] = await Promise.all([

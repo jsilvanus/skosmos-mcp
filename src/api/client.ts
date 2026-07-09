@@ -109,13 +109,11 @@ export class SkosmosClient {
           throw new NetworkError(`Request timed out after ${this.config.timeout}ms: ${url}`);
         }
 
-        // If it's already one of our typed errors (non-retryable), rethrow
-        if (err instanceof Error && err.name !== 'NetworkError' && attempt === 0) {
-          const isOurError =
-            err.name === 'NotFoundError' ||
-            err.name === 'ApiError' ||
-            err.name === 'InvalidVocabularyError';
-          if (isOurError) throw err;
+        const isTypedError =
+          err instanceof Error &&
+          (err.name === 'NotFoundError' || err.name === 'ApiError' || err.name === 'InvalidVocabularyError');
+        if (isTypedError) {
+          throw err;
         }
 
         lastError = err instanceof Error ? err : new Error(String(err));
@@ -126,6 +124,10 @@ export class SkosmosClient {
           await sleep(delay);
         }
       }
+    }
+
+    if (lastError instanceof Error && lastError.name !== 'NetworkError') {
+      throw lastError;
     }
 
     throw new NetworkError(`Request failed after ${MAX_RETRIES} retries: ${url}`, lastError);

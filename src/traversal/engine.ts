@@ -43,15 +43,16 @@ export class TraversalEngine {
     visited.add(options.uri);
 
     const queue: QueueItem[] = [];
+    let queueIndex = 0;
 
     // Seed the queue with all requested relationships from the root
     for (const rel of options.relationships) {
       queue.push({ uri: options.uri, depth: 0, relation: rel });
     }
 
-    while (queue.length > 0) {
-      // queue.length > 0 guarantees shift() returns a value
-      const item = queue.shift() as QueueItem;
+    while (queueIndex < queue.length) {
+      const item = queue[queueIndex]!;
+      queueIndex += 1;
 
       if (item.depth >= maxDepth) continue;
 

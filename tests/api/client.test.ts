@@ -80,6 +80,15 @@ describe('SkosmosClient', () => {
       expect(result).toEqual(mockData);
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
+
+    it('rethrows typed errors instead of retrying them', async () => {
+      fetchMock
+        .mockResolvedValueOnce(makeResponse({ error: 'server error' }, 500))
+        .mockResolvedValueOnce(makeResponse({ error: 'bad request' }, 400));
+
+      await expect(client.getVocabularies()).rejects.toBeInstanceOf(ApiError);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('timeout', () => {

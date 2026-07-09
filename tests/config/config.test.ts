@@ -29,6 +29,8 @@ describe('loadConfig', () => {
     delete process.env['SKOSMOS_CACHE_TTL'];
     delete process.env['SKOSMOS_MAX_TRAVERSAL_DEPTH'];
     delete process.env['SKOSMOS_USER_AGENT'];
+    delete process.env['MCP_HTTP_PORT'];
+    delete process.env['MCP_HTTP_HOST'];
 
     const config = loadConfig();
     expect(config.baseUrl).toBe('https://skosmos.example.org');
@@ -37,6 +39,8 @@ describe('loadConfig', () => {
     expect(config.cacheTtl).toBe(300);
     expect(config.maxTraversalDepth).toBe(3);
     expect(config.userAgent).toBe('skosmos-mcp/0.1.0');
+    expect(config.httpPort).toBe(3000);
+    expect(config.httpHost).toBe('127.0.0.1');
   });
 
   it('parses custom values from environment', () => {
@@ -46,6 +50,8 @@ describe('loadConfig', () => {
     process.env['SKOSMOS_CACHE_TTL'] = '60';
     process.env['SKOSMOS_MAX_TRAVERSAL_DEPTH'] = '5';
     process.env['SKOSMOS_USER_AGENT'] = 'my-agent/1.0';
+    process.env['MCP_HTTP_PORT'] = '4000';
+    process.env['MCP_HTTP_HOST'] = '0.0.0.0';
 
     const config = loadConfig();
     expect(config.baseUrl).toBe('https://api.example.com');
@@ -54,6 +60,8 @@ describe('loadConfig', () => {
     expect(config.cacheTtl).toBe(60);
     expect(config.maxTraversalDepth).toBe(5);
     expect(config.userAgent).toBe('my-agent/1.0');
+    expect(config.httpPort).toBe(4000);
+    expect(config.httpHost).toBe('0.0.0.0');
   });
 
   it('sets defaultVocabulary when env var is provided', () => {

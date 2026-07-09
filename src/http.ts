@@ -36,14 +36,14 @@ async function main(): Promise<void> {
   });
 
   app.get('/mcp', (_req: IncomingMessage, res: ServerResponse) => {
-    res.writeHead(405, { 'Content-Type': 'application/json' });
+    res.writeHead(405, { Allow: 'POST', 'Content-Type': 'application/json' });
     res.end(
       JSON.stringify({ jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed.' }, id: null }),
     );
   });
 
   app.delete('/mcp', (_req: IncomingMessage, res: ServerResponse) => {
-    res.writeHead(405, { 'Content-Type': 'application/json' });
+    res.writeHead(405, { Allow: 'POST', 'Content-Type': 'application/json' });
     res.end(
       JSON.stringify({ jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed.' }, id: null }),
     );

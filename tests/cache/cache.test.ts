@@ -18,15 +18,17 @@ describe('Cache', () => {
   });
 
   it('returns undefined after TTL expires', () => {
-    const shortTtlCache = new Cache<string>(0.001); // ~1ms TTL
-    shortTtlCache.set('key', 'value');
+    vi.useFakeTimers();
 
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        expect(shortTtlCache.get('key')).toBeUndefined();
-        resolve();
-      }, 10);
-    });
+    try {
+      const shortTtlCache = new Cache<string>(0.001); // ~1ms TTL
+      shortTtlCache.set('key', 'value');
+
+      vi.advanceTimersByTime(10);
+      expect(shortTtlCache.get('key')).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('deletes a specific key', () => {
