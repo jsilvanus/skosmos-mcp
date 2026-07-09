@@ -16,4 +16,3 @@ export function getClient(
   }
   return client;
 }
-
