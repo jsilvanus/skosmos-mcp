@@ -1,6 +1,6 @@
 {
   "name": "skosmos-mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "MCP server wrapping the Skosmos REST API",
   "type": "module",
   "main": "dist/index.js",
