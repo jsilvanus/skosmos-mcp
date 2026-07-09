@@ -11,6 +11,9 @@ const configSchema = z.object({
   httpPort: z.number().int().positive().default(3000),
   httpHost: z.string().default('127.0.0.1'),
   toolServerUrlAllowed: z.boolean().default(false),
+  sparqlEndpoint: z.string().url().optional(),
+  sparqlUsername: z.string().optional(),
+  sparqlPassword: z.string().optional(),
 });
 
 export type Config = z.infer<typeof configSchema>;
@@ -33,5 +36,9 @@ export function loadConfig(): Config {
     httpPort: process.env['MCP_HTTP_PORT'] ? parseInt(process.env['MCP_HTTP_PORT'], 10) : undefined,
     httpHost: process.env['MCP_HTTP_HOST'],
     toolServerUrlAllowed: process.env['SKOSMOS_TOOL_SERVER_URL_ALLOWED'] === 'true',
+    sparqlEndpoint: process.env['SPARQL_ENDPOINT_URL'] || undefined,
+    sparqlUsername: process.env['SPARQL_USERNAME'] || undefined,
+    sparqlPassword: process.env['SPARQL_PASSWORD'] || undefined,
   });
 }
+
