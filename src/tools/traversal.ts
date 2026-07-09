@@ -37,11 +37,11 @@ export const traverseConceptsSchema = z.object({
   server_url: z.string().url().optional(),
 });
 
-function getClient(client: SkosmosClient, config: Config, serverUrl?: string): SkosmosClient | undefined {
+function getClient(client: SkosmosClient, config: Config, serverUrl?: string): SkosmosClient {
   if (serverUrl && config.toolServerUrlAllowed) {
     return client.withBaseUrl(serverUrl);
   }
-  return undefined;
+  return client;
 }
 
 export async function handleBroaderConcepts(

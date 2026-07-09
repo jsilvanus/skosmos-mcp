@@ -9,7 +9,7 @@ export interface TraversalOptions {
   relationships: ('broader' | 'narrower' | 'related')[];
   maxDepth: number;
   lang?: string;
-  client?: SkosmosClient | undefined;
+  client?: SkosmosClient;
 }
 
 interface QueueItem {
@@ -137,7 +137,7 @@ export class TraversalEngine {
     uri: string,
     depth?: number,
     lang?: string,
-    client?: SkosmosClient | undefined,
+    client?: SkosmosClient,
   ): Promise<TraversalResult> {
     const opts: TraversalOptions = {
       vocid,
@@ -155,7 +155,7 @@ export class TraversalEngine {
     uri: string,
     depth?: number,
     lang?: string,
-    client?: SkosmosClient | undefined,
+    client?: SkosmosClient,
   ): Promise<TraversalResult> {
     const opts: TraversalOptions = {
       vocid,
@@ -173,7 +173,7 @@ export class TraversalEngine {
     uri: string,
     depth?: number,
     lang?: string,
-    client?: SkosmosClient | undefined,
+    client?: SkosmosClient,
   ): Promise<TraversalResult> {
     const opts: TraversalOptions = {
       vocid,
@@ -192,7 +192,7 @@ export class TraversalEngine {
     relationships: ('broader' | 'narrower' | 'related')[],
     depth?: number,
     lang?: string,
-    client?: SkosmosClient | undefined,
+    client?: SkosmosClient,
   ): Promise<TraversalResult> {
     const opts: TraversalOptions = {
       vocid,
