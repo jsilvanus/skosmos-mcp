@@ -1,3 +1,8 @@
+/**
+ * SPARQL query validation and helper utilities.
+ * Contains code derived from ramuzes/mcp-jena (https://github.com/ramuzes/mcp-jena)
+ * Used under MIT License.
+ */
 export interface ValidationResult {
   valid: boolean;
   errors: string[];

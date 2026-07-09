@@ -1,3 +1,8 @@
+/**
+ * SPARQL client for executing queries and updates against SPARQL endpoints.
+ * Contains code derived from ramuzes/mcp-jena (https://github.com/ramuzes/mcp-jena)
+ * Used under MIT License.
+ */
 import axios from 'axios';
 import { SparqlHelper } from '../util/sparql-helper.js';
 
