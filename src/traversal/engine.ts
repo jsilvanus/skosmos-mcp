@@ -50,7 +50,8 @@ export class TraversalEngine {
     }
 
     while (queue.length > 0) {
-      const item = queue.shift()!;
+      // queue.length > 0 guarantees shift() returns a value
+      const item = queue.shift() as QueueItem;
 
       if (item.depth >= maxDepth) continue;
 

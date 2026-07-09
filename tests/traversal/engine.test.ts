@@ -50,7 +50,7 @@ describe('TraversalEngine', () => {
 
       const result = await engine.traverseBroader('vocab', 'http://example.org/A', 1);
       expect(result.rootUri).toBe('http://example.org/A');
-      expect(result.nodes[0]?.uri ?? result.nodes[0]?.concept?.uri).toBeDefined();
+      expect(result.nodes[0]?.concept.uri).toBe('http://example.org/A');
       expect(result.nodes[0]?.depth).toBe(0);
     });
 
