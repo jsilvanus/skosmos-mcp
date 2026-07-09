@@ -1,12 +1,13 @@
 # skosmos-mcp
 
-A production-quality [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that wraps the [Skosmos](https://skosmos.org/) REST API, enabling AI assistants to navigate and query SKOS vocabularies.
+A production-quality [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that wraps the [Skosmos](https://skosmos.org/) REST API, enabling AI assistants to navigate and query SKOS vocabularies. Also includes SPARQL query capabilities for direct RDF data access.
 
 ---
 
 ## Features
 
 - **13 MCP tools** covering vocabulary browsing, concept lookup, full-text search, label resolution, and BFS traversal
+- **4 SPARQL tools** for direct SPARQL query execution, updates, graph discovery, and query templates
 - **3 MCP resources** for direct URI-based access to vocabularies and concepts
 - **BFS traversal engine** with configurable depth cap, cycle detection, and duplicate elimination
 - **TTL-based in-memory cache** to avoid redundant API calls
@@ -47,6 +48,12 @@ SKOSMOS_USER_AGENT=skosmos-mcp/0.1.0
 SKOSMOS_CACHE_TTL=300
 SKOSMOS_MAX_TRAVERSAL_DEPTH=3
 SKOSMOS_TOOL_SERVER_URL_ALLOWED=false
+
+# SPARQL Configuration (optional)
+SPARQL_ENDPOINT_URL=http://localhost:3030/ds/query
+SPARQL_USERNAME=
+SPARQL_PASSWORD=
+SPARQL_ALLOW_OTHER_ENDPOINTS=false
 ```
 
 | Variable | Default | Description |
@@ -62,6 +69,10 @@ SKOSMOS_TOOL_SERVER_URL_ALLOWED=false
 | `LOG_LEVEL` | `info` | Log level: debug, info, warn, error (written to stderr) |
 | `MCP_HTTP_PORT` | `3000` | TCP port for the StreamableHTTP server |
 | `MCP_HTTP_HOST` | `127.0.0.1` | Bind address for the StreamableHTTP server |
+| `SPARQL_ENDPOINT_URL` | — | SPARQL endpoint URL (optional; enables SPARQL tools) |
+| `SPARQL_USERNAME` | — | Username for SPARQL endpoint HTTP Basic auth (optional) |
+| `SPARQL_PASSWORD` | — | Password for SPARQL endpoint HTTP Basic auth (optional) |
+| `SPARQL_ALLOW_OTHER_ENDPOINTS` | `false` | When `true`, allows SPARQL tools to accept optional `endpoint` parameter to query a different SPARQL endpoint |
 
 ---
 
@@ -208,6 +219,70 @@ BFS using a mix of relationship types.
 | `relationships` | array | yes | One or more of: `"broader"`, `"narrower"`, `"related"` |
 | `depth` | integer | no | Max traversal depth |
 | `lang` | string | no | Language code |
+
+---
+
+### SPARQL Tools
+
+SPARQL tools enable direct querying of RDF data. Set `SPARQL_ENDPOINT_URL` environment variable to enable these tools. Supports both SPARQL 1.1 Query and Update protocols, with optional HTTP Basic authentication.
+
+#### `execute_sparql_query`
+Execute a SPARQL query (SELECT, CONSTRUCT, ASK, DESCRIBE) against the configured endpoint.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `query` | string | yes | The SPARQL query to execute |
+| `endpoint` | URL | no | Optional custom SPARQL endpoint (overrides default) |
+
+**Example Query:**
+```sparql
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+SELECT ?concept ?label
+WHERE {
+  ?concept a skos:Concept ;
+           skos:prefLabel ?label .
+}
+LIMIT 10
+```
+
+#### `execute_sparql_update`
+Execute a SPARQL update query (INSERT, DELETE, etc.) against the configured endpoint.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `update` | string | yes | The SPARQL update query to execute |
+| `endpoint` | URL | no | Optional custom SPARQL endpoint (overrides default) |
+
+**Example Update:**
+```sparql
+PREFIX ex: <http://example.org/>
+INSERT DATA {
+  ex:subject1 ex:predicate1 "object1" .
+}
+```
+
+#### `list_sparql_graphs`
+List all available named graphs in the SPARQL endpoint.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `endpoint` | URL | no | Optional custom SPARQL endpoint (overrides default) |
+
+**Returns:** JSON array of graph URIs.
+
+#### `sparql_query_templates`
+Get pre-built SPARQL query templates for common data exploration patterns.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `category` | string | yes | Template category: `exploration`, `property-paths`, `statistics`, `validation`, `schema`, or `all` |
+
+**Categories:**
+- `exploration` — Basic data discovery and statistics
+- `property-paths` — Complex graph navigation using SPARQL property paths
+- `statistics` — Knowledge graph metrics and analysis
+- `validation` — Data quality and consistency checks
+- `schema` — Structure discovery and ontology exploration
 
 ---
 
