@@ -1,0 +1,302 @@
+{
+  "apiVersion": "1",
+  "baseUrl": "{SKOSMOS_BASE_URL}/rest/v1",
+  "endpoints": [
+    {
+      "path": "/vocabularies",
+      "method": "GET",
+      "description": "List all vocabularies available in this Skosmos instance",
+      "parameters": [
+        { "name": "lang", "type": "string", "required": false, "description": "Language code for labels (e.g. 'en', 'fi')" }
+      ],
+      "response": "VocabulariesResponse: { vocabularies: Array<{ id, title, defaultLanguage?, languages?, type? }> }"
+    },
+    {
+      "path": "/search",
+      "method": "GET",
+      "description": "Global full-text search across all vocabularies",
+      "parameters": [
+        { "name": "query", "type": "string", "required": true, "description": "Search string; supports wildcards (e.g. 'wate*')" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language of labels to return" },
+        { "name": "labellang", "type": "string", "required": false, "description": "Language of labels to search in" },
+        { "name": "vocab", "type": "string", "required": false, "description": "Limit to specific vocabulary id" },
+        { "name": "type", "type": "string", "required": false, "description": "SKOS concept type URI filter" },
+        { "name": "parent", "type": "string", "required": false, "description": "Parent concept URI filter" },
+        { "name": "group", "type": "string", "required": false, "description": "Group URI filter" },
+        { "name": "maxhits", "type": "integer", "required": false, "description": "Maximum number of results to return" },
+        { "name": "offset", "type": "integer", "required": false, "description": "Offset into result set for pagination" },
+        { "name": "fields", "type": "string", "required": false, "description": "Comma-separated extra fields to include" },
+        { "name": "unique", "type": "boolean", "required": false, "description": "Return only unique preferred labels" }
+      ],
+      "response": "SearchResponse: { results: Array<{ uri, prefLabel?, altLabel?, type?, vocab?, lang?, notation?, exvocab? }> }"
+    },
+    {
+      "path": "/label",
+      "method": "GET",
+      "description": "Resolve a URI to its label(s)",
+      "parameters": [
+        { "name": "uri", "type": "string", "required": true, "description": "Concept URI to resolve" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code for label" }
+      ],
+      "response": "LabelResponse: { uri, prefLabel?, altLabel?, hiddenLabel? }"
+    },
+    {
+      "path": "/data",
+      "method": "GET",
+      "description": "Get RDF data for a URI",
+      "parameters": [
+        { "name": "uri", "type": "string", "required": false, "description": "URI of resource to retrieve" },
+        { "name": "format", "type": "string", "required": false, "description": "RDF serialization format" }
+      ],
+      "response": "Raw RDF data in requested format"
+    },
+    {
+      "path": "/types",
+      "method": "GET",
+      "description": "List all concept types across all vocabularies",
+      "parameters": [
+        { "name": "lang", "type": "string", "required": false, "description": "Language code for labels" }
+      ],
+      "response": "Array of concept type objects with URI and label"
+    },
+    {
+      "path": "/{vocid}/",
+      "method": "GET",
+      "description": "Get information about a specific vocabulary",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier (path segment)" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code for labels" }
+      ],
+      "response": "VocabularyInfoResponse: { id, title, defaultLanguage?, languages?, conceptSchemes?, type? }"
+    },
+    {
+      "path": "/{vocid}/topConcepts",
+      "method": "GET",
+      "description": "Get top-level concepts of a vocabulary",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" },
+        { "name": "scheme", "type": "string", "required": false, "description": "Concept scheme URI to filter by" }
+      ],
+      "response": "TopConceptsResponse: { topconcepts: Array<{ uri, prefLabel?, notation?, hasChildren?, topConceptOf? }> }"
+    },
+    {
+      "path": "/{vocid}/search",
+      "method": "GET",
+      "description": "Search within a specific vocabulary",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "query", "type": "string", "required": true, "description": "Search string" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" },
+        { "name": "type", "type": "string", "required": false, "description": "Concept type URI" },
+        { "name": "parent", "type": "string", "required": false, "description": "Parent concept URI" },
+        { "name": "group", "type": "string", "required": false, "description": "Group URI" },
+        { "name": "maxhits", "type": "integer", "required": false, "description": "Max results" },
+        { "name": "offset", "type": "integer", "required": false, "description": "Pagination offset" },
+        { "name": "fields", "type": "string", "required": false, "description": "Extra fields" },
+        { "name": "unique", "type": "boolean", "required": false, "description": "Unique labels only" }
+      ],
+      "response": "SearchResponse"
+    },
+    {
+      "path": "/{vocid}/lookup",
+      "method": "GET",
+      "description": "Look up a concept by its label text",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "label", "type": "string", "required": true, "description": "Label text to look up" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "LookupResponse: { results: Array<{ uri, prefLabel?, altLabel?, type?, vocab?, lang? }> }"
+    },
+    {
+      "path": "/{vocid}/label",
+      "method": "GET",
+      "description": "Get labels for a concept URI within a vocabulary",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "uri", "type": "string", "required": true, "description": "Concept URI" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "LabelResponse: { uri, prefLabel?, altLabel?, hiddenLabel? }"
+    },
+    {
+      "path": "/{vocid}/broader",
+      "method": "GET",
+      "description": "Get direct broader (parent) concepts",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "uri", "type": "string", "required": true, "description": "Concept URI" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "BroaderResponse: { uri?, broader?: Array<{ uri, prefLabel?, notation? }> }"
+    },
+    {
+      "path": "/{vocid}/broaderTransitive",
+      "method": "GET",
+      "description": "Get all broader ancestors transitively",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "uri", "type": "string", "required": true, "description": "Concept URI" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" },
+        { "name": "limit", "type": "integer", "required": false, "description": "Max depth limit" }
+      ],
+      "response": "BroaderResponse: { broaderTransitive?: Record<uri, { uri, prefLabel?, broader? }> }"
+    },
+    {
+      "path": "/{vocid}/narrower",
+      "method": "GET",
+      "description": "Get direct narrower (child) concepts",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "uri", "type": "string", "required": true, "description": "Concept URI" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "NarrowerResponse: { uri?, narrower?: Array<{ uri, prefLabel?, notation? }> }"
+    },
+    {
+      "path": "/{vocid}/narrowerTransitive",
+      "method": "GET",
+      "description": "Get all narrower descendants transitively",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "uri", "type": "string", "required": true, "description": "Concept URI" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" },
+        { "name": "limit", "type": "integer", "required": false, "description": "Max depth limit" }
+      ],
+      "response": "NarrowerResponse: { narrowerTransitive?: Record<uri, { uri, prefLabel?, narrower? }> }"
+    },
+    {
+      "path": "/{vocid}/related",
+      "method": "GET",
+      "description": "Get related concepts (skos:related)",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "uri", "type": "string", "required": true, "description": "Concept URI" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "RelatedResponse: { uri?, related?: Array<{ uri, prefLabel?, notation? }> }"
+    },
+    {
+      "path": "/{vocid}/children",
+      "method": "GET",
+      "description": "Get children in the hierarchy view (similar to narrower)",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "uri", "type": "string", "required": true, "description": "Concept URI" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "NarrowerResponse"
+    },
+    {
+      "path": "/{vocid}/hierarchy",
+      "method": "GET",
+      "description": "Get broader transitive path plus narrower children (tree view)",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "uri", "type": "string", "required": true, "description": "Concept URI" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "HierarchyResponse: { broaderTransitive?: Record<uri, { uri, prefLabel?, broader?, narrower? }> }"
+    },
+    {
+      "path": "/{vocid}/groups",
+      "method": "GET",
+      "description": "Get concept groups in a vocabulary",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "GroupsResponse: { groups?: Array<{ uri, prefLabel?, hasMembers? }> }"
+    },
+    {
+      "path": "/{vocid}/groupMembers",
+      "method": "GET",
+      "description": "Get members of a concept group",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "uri", "type": "string", "required": true, "description": "Group URI" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "GroupMembersResponse: { uri?, members?: Array<{ uri, prefLabel?, notation? }> }"
+    },
+    {
+      "path": "/{vocid}/mappings",
+      "method": "GET",
+      "description": "Get SKOS mappings for a concept",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "uri", "type": "string", "required": true, "description": "Concept URI" },
+        { "name": "external", "type": "boolean", "required": false, "description": "Include external mappings" },
+        { "name": "clang", "type": "string", "required": false, "description": "Concept language" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language for labels" }
+      ],
+      "response": "MappingsResponse: { mappings?: Array<{ uri?, type?, from?, to? }> }"
+    },
+    {
+      "path": "/{vocid}/vocabularyStatistics",
+      "method": "GET",
+      "description": "Get statistics for a vocabulary (concept counts, etc.)",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "Object with concept counts and statistics"
+    },
+    {
+      "path": "/{vocid}/labelStatistics",
+      "method": "GET",
+      "description": "Get label statistics per language for a vocabulary",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "Object with label counts per language"
+    },
+    {
+      "path": "/{vocid}/index/",
+      "method": "GET",
+      "description": "Get index letters for alphabetical browsing",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "Array of index letters"
+    },
+    {
+      "path": "/{vocid}/index/{letter}",
+      "method": "GET",
+      "description": "Get concepts starting with a specific letter",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "letter", "type": "string", "required": true, "description": "Index letter (path segment)" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" }
+      ],
+      "response": "Array of concept references starting with the given letter"
+    },
+    {
+      "path": "/{vocid}/new",
+      "method": "GET",
+      "description": "Get newly added concepts",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" },
+        { "name": "offset", "type": "integer", "required": false, "description": "Pagination offset" },
+        { "name": "limit", "type": "integer", "required": false, "description": "Max results" }
+      ],
+      "response": "Array of recently added concept references"
+    },
+    {
+      "path": "/{vocid}/modified",
+      "method": "GET",
+      "description": "Get recently modified concepts",
+      "parameters": [
+        { "name": "vocid", "type": "string", "required": true, "description": "Vocabulary identifier" },
+        { "name": "lang", "type": "string", "required": false, "description": "Language code" },
+        { "name": "offset", "type": "integer", "required": false, "description": "Pagination offset" },
+        { "name": "limit", "type": "integer", "required": false, "description": "Max results" }
+      ],
+      "response": "Array of recently modified concept references"
+    }
+  ]
+}
