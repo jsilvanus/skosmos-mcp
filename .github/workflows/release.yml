@@ -15,6 +15,13 @@ jobs:
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        include:
+          - target: http
+            suffix: http
+          - target: stdio
+            suffix: stdio
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -32,20 +39,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Docker metadata
+      - name: Extract Docker metadata for ${{ matrix.target }}
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=tag
-            type=raw,value=latest,enable=${{ github.event_name == 'release' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+            type=ref,event=branch,suffix=-${{ matrix.suffix }}
+            type=ref,event=tag,suffix=-${{ matrix.suffix }}
+            type=raw,value=${{ matrix.suffix }},enable=${{ github.event_name == 'release' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+            type=raw,value=${{ matrix.suffix }}-latest,enable=${{ github.event_name == 'release' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
 
-      - name: Build and push Docker image
+      - name: Build and push Docker image for ${{ matrix.target }}
         uses: docker/build-push-action@v6
         with:
           context: .
+          target: ${{ matrix.target }}
           push: true
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
