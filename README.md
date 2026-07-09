@@ -33,6 +33,16 @@ Or run directly with tsx:
 npm run dev
 ```
 
+### Docker / Docker Compose
+
+Build and run the Streamable HTTP MCP server in a container:
+
+```bash
+docker compose up --build -d
+```
+
+This starts the server on port `3000` and uses Docker Compose's `restart: unless-stopped` policy so it will come back up automatically after crashes. The container reads the same environment variables as the local app, so copy `.env.example` to `.env` and set `SKOSMOS_BASE_URL` before starting it.
+
 ---
 
 ## Configuration
