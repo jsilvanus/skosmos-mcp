@@ -41,7 +41,3 @@ Notes:
 - "Yes (partial)" means equivalent data or functionality is available via MCP tools/resources but parameter shapes, output formats, or required parameters may differ from the REST API.
 - The MCP in this repository exposes a single HTTP entrypoint: `/mcp` (JSON-RPC over POST). The REST API endpoints above are served by Skosmos servers; MCP provides equivalent operations as JSON-RPC tools and some static/dynamic resources (e.g., `skosmos://vocabularies`, `skosmos://{vocid}`, `skosmos://{vocid}/{encodedUri}`).
 - REST endpoints that return RDF serializations (e.g., `/data`, `/{vocid}/data`) are not exposed by MCP; MCP returns JSON text payloads (stringified JSON) in tool `content` fields.
-
-If you want, I can:
-- Add missing tools/resources that map to specific REST endpoints (e.g., `data`, `vocabularyStatistics`, `labelStatistics`, indexing) as follow-up work.
-- Produce a machine-readable CSV of this table.
