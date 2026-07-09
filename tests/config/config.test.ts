@@ -72,11 +72,19 @@ describe('loadConfig', () => {
     expect(config.defaultVocabulary).toBe('yso');
   });
 
-  it('leaves defaultVocabulary undefined when env var is empty', () => {
+  it('sets sparqlAllowOtherEndpoints when env var is provided', () => {
     process.env['SKOSMOS_BASE_URL'] = 'https://skosmos.example.org';
-    process.env['SKOSMOS_DEFAULT_VOCABULARY'] = '';
+    process.env['SPARQL_ALLOW_OTHER_ENDPOINTS'] = 'true';
 
     const config = loadConfig();
-    expect(config.defaultVocabulary).toBeUndefined();
+    expect(config.sparqlAllowOtherEndpoints).toBe(true);
+  });
+
+  it('leaves sparqlAllowOtherEndpoints false when env var is not provided', () => {
+    process.env['SKOSMOS_BASE_URL'] = 'https://skosmos.example.org';
+    delete process.env['SPARQL_ALLOW_OTHER_ENDPOINTS'];
+
+    const config = loadConfig();
+    expect(config.sparqlAllowOtherEndpoints).toBe(false);
   });
 });

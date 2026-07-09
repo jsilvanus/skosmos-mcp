@@ -14,6 +14,7 @@ const configSchema = z.object({
   sparqlEndpoint: z.string().url().optional(),
   sparqlUsername: z.string().optional(),
   sparqlPassword: z.string().optional(),
+  sparqlAllowOtherEndpoints: z.boolean().default(false),
 });
 
 export type Config = z.infer<typeof configSchema>;
@@ -39,6 +40,7 @@ export function loadConfig(): Config {
     sparqlEndpoint: process.env['SPARQL_ENDPOINT_URL'] || undefined,
     sparqlUsername: process.env['SPARQL_USERNAME'] || undefined,
     sparqlPassword: process.env['SPARQL_PASSWORD'] || undefined,
+    sparqlAllowOtherEndpoints: process.env['SPARQL_ALLOW_OTHER_ENDPOINTS'] === 'true',
   });
 }
 

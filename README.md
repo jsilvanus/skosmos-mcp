@@ -53,6 +53,7 @@ SKOSMOS_TOOL_SERVER_URL_ALLOWED=false
 SPARQL_ENDPOINT_URL=http://localhost:3030/ds/query
 SPARQL_USERNAME=
 SPARQL_PASSWORD=
+SPARQL_ALLOW_OTHER_ENDPOINTS=false
 ```
 
 | Variable | Default | Description |
@@ -71,6 +72,7 @@ SPARQL_PASSWORD=
 | `SPARQL_ENDPOINT_URL` | — | SPARQL endpoint URL (optional; enables SPARQL tools) |
 | `SPARQL_USERNAME` | — | Username for SPARQL endpoint HTTP Basic auth (optional) |
 | `SPARQL_PASSWORD` | — | Password for SPARQL endpoint HTTP Basic auth (optional) |
+| `SPARQL_ALLOW_OTHER_ENDPOINTS` | `false` | When `true`, allows SPARQL tools to accept optional `endpoint` parameter to query a different SPARQL endpoint |
 
 ---
 

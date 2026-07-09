@@ -22,8 +22,14 @@ const SparqlTemplatesInput = z.object({
     .describe('Category of templates to retrieve'),
 });
 
-export async function handleExecuteSparqlQuery(input: unknown, defaultEndpoint?: string, defaultUsername?: string, defaultPassword?: string) {
+export async function handleExecuteSparqlQuery(input: unknown, defaultEndpoint?: string, defaultUsername?: string, defaultPassword?: string, allowOtherEndpoints?: boolean) {
   const parsed = ExecuteSparqlQueryInput.parse(input);
+  
+  // Check if custom endpoint is being used when not allowed
+  if (parsed.endpoint && !allowOtherEndpoints) {
+    throw new Error('Custom SPARQL endpoints are not allowed. Set SPARQL_ALLOW_OTHER_ENDPOINTS=true to enable.');
+  }
+  
   const endpoint = parsed.endpoint || defaultEndpoint;
 
   if (!endpoint) {
@@ -43,8 +49,14 @@ export async function handleExecuteSparqlQuery(input: unknown, defaultEndpoint?:
   };
 }
 
-export async function handleExecuteSparqlUpdate(input: unknown, defaultEndpoint?: string, defaultUsername?: string, defaultPassword?: string) {
+export async function handleExecuteSparqlUpdate(input: unknown, defaultEndpoint?: string, defaultUsername?: string, defaultPassword?: string, allowOtherEndpoints?: boolean) {
   const parsed = ExecuteSparqlUpdateInput.parse(input);
+  
+  // Check if custom endpoint is being used when not allowed
+  if (parsed.endpoint && !allowOtherEndpoints) {
+    throw new Error('Custom SPARQL endpoints are not allowed. Set SPARQL_ALLOW_OTHER_ENDPOINTS=true to enable.');
+  }
+  
   const endpoint = parsed.endpoint || defaultEndpoint;
 
   if (!endpoint) {
@@ -64,8 +76,14 @@ export async function handleExecuteSparqlUpdate(input: unknown, defaultEndpoint?
   };
 }
 
-export async function handleListGraphs(input: unknown, defaultEndpoint?: string, defaultUsername?: string, defaultPassword?: string) {
+export async function handleListGraphs(input: unknown, defaultEndpoint?: string, defaultUsername?: string, defaultPassword?: string, allowOtherEndpoints?: boolean) {
   const parsed = ListGraphsInput.parse(input);
+  
+  // Check if custom endpoint is being used when not allowed
+  if (parsed.endpoint && !allowOtherEndpoints) {
+    throw new Error('Custom SPARQL endpoints are not allowed. Set SPARQL_ALLOW_OTHER_ENDPOINTS=true to enable.');
+  }
+  
   const endpoint = parsed.endpoint || defaultEndpoint;
 
   if (!endpoint) {
