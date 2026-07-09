@@ -8,6 +8,8 @@ const configSchema = z.object({
   userAgent: z.string().default('skosmos-mcp/0.1.0'),
   cacheTtl: z.number().int().nonnegative().default(300),
   maxTraversalDepth: z.number().int().positive().default(3),
+  httpPort: z.number().int().positive().default(3000),
+  httpHost: z.string().default('127.0.0.1'),
 });
 
 export type Config = z.infer<typeof configSchema>;
@@ -27,5 +29,7 @@ export function loadConfig(): Config {
     maxTraversalDepth: process.env['SKOSMOS_MAX_TRAVERSAL_DEPTH']
       ? parseInt(process.env['SKOSMOS_MAX_TRAVERSAL_DEPTH'], 10)
       : undefined,
+    httpPort: process.env['MCP_HTTP_PORT'] ? parseInt(process.env['MCP_HTTP_PORT'], 10) : undefined,
+    httpHost: process.env['MCP_HTTP_HOST'],
   });
 }

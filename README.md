@@ -15,6 +15,7 @@ A production-quality [Model Context Protocol (MCP)](https://modelcontextprotocol
 - **Strict TypeScript** (strict mode, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
 - **Zod-validated inputs** on all tools
 - **stdio transport** — reads from stdin, writes to stdout; all logging goes to stderr
+- **StreamableHTTP transport** — HTTP server at `/mcp` for remote or web-based MCP clients
 
 ---
 
@@ -57,6 +58,8 @@ SKOSMOS_MAX_TRAVERSAL_DEPTH=3
 | `SKOSMOS_CACHE_TTL` | `300` | Cache entry TTL in seconds |
 | `SKOSMOS_MAX_TRAVERSAL_DEPTH` | `3` | Hard cap on BFS traversal depth |
 | `LOG_LEVEL` | `info` | Log level: debug, info, warn, error (written to stderr) |
+| `MCP_HTTP_PORT` | `3000` | TCP port for the StreamableHTTP server |
+| `MCP_HTTP_HOST` | `127.0.0.1` | Bind address for the StreamableHTTP server |
 
 ---
 
@@ -257,6 +260,15 @@ Response includes `nodes` (with depth), `edges` (directed relationships), `rootU
 ```bash
 SKOSMOS_BASE_URL=https://skosmos.example.org node dist/index.js
 ```
+
+### StreamableHTTP
+
+```bash
+SKOSMOS_BASE_URL=https://skosmos.example.org MCP_HTTP_PORT=3000 node dist/http.js
+```
+
+The server listens on `http://<MCP_HTTP_HOST>:<MCP_HTTP_PORT>/mcp` (default: `http://127.0.0.1:3000/mcp`).
+Each POST request is handled as a stateless MCP session.
 
 ### Claude Desktop (`claude_desktop_config.json`)
 
