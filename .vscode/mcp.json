@@ -1,6 +1,6 @@
 {
 	"servers": {
-		"Skosmos MCP": {
+		"Local Skosmos MCP": {
 			"type": "stdio",
 			"command": "node",
 			"args": [
@@ -10,6 +10,10 @@
 				"SKOSMOS_BASE_URL": "https://api.finto.fi",
 				"SKOSMOS_DEFAULT_LANGUAGE": "fi"
 			}
+		},
+		"Skosmos MCP": {
+			"type": "sse",
+			"url": "https://skosmos.italeino.fi/mcp"
 		}
 	},
 	"inputs": []
