@@ -1,3 +1,8 @@
+/**
+ * SPARQL tools for executing queries, updates, and graph discovery.
+ * Contains code derived from ramuzes/mcp-jena (https://github.com/ramuzes/mcp-jena)
+ * Used under MIT License.
+ */
 import { z } from 'zod';
 import { SparqlClient } from '../api/sparql-client.js';
 import { SparqlTemplates } from '../util/sparql-templates.js';

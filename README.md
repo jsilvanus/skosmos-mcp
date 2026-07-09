@@ -238,6 +238,8 @@ BFS using a mix of relationship types.
 
 SPARQL tools enable direct querying of RDF data. Set `SPARQL_ENDPOINT_URL` environment variable to enable these tools. Supports both SPARQL 1.1 Query and Update protocols, with optional HTTP Basic authentication.
 
+**Attribution:** The SPARQL functionality in this project is derived from [ramuzes/mcp-jena](https://github.com/ramuzes/mcp-jena) and is used under the MIT License.
+
 #### `execute_sparql_query`
 Execute a SPARQL query (SELECT, CONSTRUCT, ASK, DESCRIBE) against the configured endpoint.
 
@@ -455,4 +457,8 @@ TraversalEngine   CacheManager
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Attribution
+
+SPARQL functionality in this project is derived from [ramuzes/mcp-jena](https://github.com/ramuzes/mcp-jena) and is used under the MIT License.

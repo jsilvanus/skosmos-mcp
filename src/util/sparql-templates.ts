@@ -1,3 +1,8 @@
+/**
+ * SPARQL query templates for common data exploration patterns.
+ * Contains code derived from ramuzes/mcp-jena (https://github.com/ramuzes/mcp-jena)
+ * Used under MIT License.
+ */
 export interface QueryTemplate {
   name: string;
   description: string;
