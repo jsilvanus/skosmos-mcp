@@ -23,6 +23,12 @@ import {
 } from '../tools/search.js';
 import { handleLabels } from '../tools/labels.js';
 import {
+  handleVocabularySchemaOverview,
+  handleQueryGuidance,
+  handleReconcileConcept,
+  handleSuggestSparqlTemplates,
+} from '../tools/assist.js';
+import {
   handleBroaderConcepts,
   handleNarrowerConcepts,
   handleRelatedConcepts,
@@ -182,7 +188,7 @@ export function createServer(
   );
 
   // --- Labels tool ---
-
+ 
   server.tool(
     'labels',
     'Get all labels for a concept URI in a vocabulary',
@@ -194,7 +200,64 @@ export function createServer(
     },
     wrapHandler(async (args) => handleLabels(args, client, cacheManager, config)),
   );
-
+ 
+  // --- Assistance tools ---
+ 
+  server.tool(
+    'vocabulary_schema_overview',
+    'Summarize a vocabulary structure with entry points, relationship hints, and suggested tasks',
+    {
+      id: z.string().min(1).describe('Vocabulary identifier'),
+      lang: z.string().optional().describe('Language code'),
+      includeTopConcepts: z.boolean().optional().describe('Whether to include top concept previews'),
+      maxTopConcepts: z.number().int().positive().optional().describe('Maximum number of top concepts to include'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
+    },
+    wrapHandler(async (args) => handleVocabularySchemaOverview(args, client, cacheManager, config)),
+  );
+ 
+  server.tool(
+    'query_guidance',
+    'Return curated guidance for common SKOS vocabulary tasks such as exploration, label resolution, or hierarchy traversal',
+    {
+      vocabulary: z.string().min(1).describe('Vocabulary identifier'),
+      task: z
+        .enum(['explore', 'resolve', 'hierarchy', 'related', 'search', 'all'])
+        .optional()
+        .describe('Task to tailor the guidance to'),
+      lang: z.string().optional().describe('Language code'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
+    },
+    wrapHandler(async (args) => handleQueryGuidance(args, client, cacheManager, config)),
+  );
+ 
+  server.tool(
+    'reconcile_concept',
+    'Resolve a label to one or more concept candidates using Skosmos lookup and search',
+    {
+      text: z.string().min(1).describe('Label text to resolve'),
+      vocabulary: z.string().min(1).describe('Vocabulary identifier'),
+      lang: z.string().optional().describe('Language code'),
+      type: z.string().optional().describe('Optional concept type filter'),
+      maxhits: z.number().int().positive().optional().describe('Maximum number of concept matches to return'),
+      server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
+    },
+    wrapHandler(async (args) => handleReconcileConcept(args, client, cacheManager, config)),
+  );
+ 
+  server.tool(
+    'suggest_sparql_templates',
+    'Return SKOS-oriented SPARQL templates for exploration, hierarchy tracing, labels, and related concepts',
+    {
+      vocabulary: z.string().optional().describe('Optional vocabulary identifier to include in the result'),
+      task: z
+        .enum(['explore', 'hierarchy', 'labels', 'related', 'all'])
+        .optional()
+        .describe('Task category for the returned templates'),
+    },
+    wrapHandler(async (args) => handleSuggestSparqlTemplates(args)),
+  );
+ 
   // --- Traversal tools ---
 
   server.tool(
@@ -205,6 +268,7 @@ export function createServer(
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
       depth: z.number().int().positive().optional().describe('Maximum traversal depth'),
       lang: z.string().optional().describe('Language code'),
+      include_explanation: z.boolean().optional().describe('Whether to include a short explanation of the traversal result'),
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) =>
@@ -220,6 +284,7 @@ export function createServer(
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
       depth: z.number().int().positive().optional().describe('Maximum traversal depth'),
       lang: z.string().optional().describe('Language code'),
+      include_explanation: z.boolean().optional().describe('Whether to include a short explanation of the traversal result'),
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) =>
@@ -235,6 +300,7 @@ export function createServer(
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
       depth: z.number().int().positive().optional().describe('Maximum traversal depth'),
       lang: z.string().optional().describe('Language code'),
+      include_explanation: z.boolean().optional().describe('Whether to include a short explanation of the traversal result'),
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) =>
@@ -254,6 +320,7 @@ export function createServer(
         .describe('Relationship types to traverse'),
       depth: z.number().int().positive().optional().describe('Maximum traversal depth'),
       lang: z.string().optional().describe('Language code'),
+      include_explanation: z.boolean().optional().describe('Whether to include a short explanation of the traversal result'),
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) =>

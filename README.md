@@ -6,7 +6,7 @@ A production-quality [Model Context Protocol (MCP)](https://modelcontextprotocol
 
 ## Features
 
-- **13 MCP tools** covering vocabulary browsing, concept lookup, full-text search, label resolution, and BFS traversal
+- **17 MCP tools** covering vocabulary browsing, concept lookup, full-text search, label resolution, BFS traversal, and schema-guided assistance
 - **4 SPARQL tools** for direct SPARQL query execution, updates, graph discovery, and query templates
 - **3 MCP resources** for direct URI-based access to vocabularies and concepts
 - **BFS traversal engine** with configurable depth cap, cycle detection, and duplicate elimination
@@ -256,6 +256,45 @@ BFS using a mix of relationship types.
 
 ---
 
+### Assistance Tools
+
+#### `vocabulary_schema_overview`
+Summarize a vocabulary's structure with top concepts, relationship hints, and suggested tasks for AI clients.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `id` | string | yes | Vocabulary identifier |
+| `lang` | string | no | Language code |
+| `includeTopConcepts` | boolean | no | Whether to include a top concept preview |
+| `maxTopConcepts` | integer | no | Maximum number of top concept previews |
+
+#### `query_guidance`
+Return task-oriented guidance for common SKOS vocabulary workflows such as exploration, hierarchy traversal, or label resolution.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `vocabulary` | string | yes | Vocabulary identifier |
+| `task` | string | no | One of `explore`, `resolve`, `hierarchy`, `related`, `search`, or `all` |
+
+#### `reconcile_concept`
+Resolve a label to one or more candidate concepts using Skosmos lookup and search.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `text` | string | yes | Label text to resolve |
+| `vocabulary` | string | yes | Vocabulary identifier |
+| `lang` | string | no | Language code |
+| `type` | string | no | Optional concept type filter |
+| `maxhits` | integer | no | Maximum number of matches |
+
+#### `suggest_sparql_templates`
+Return SKOS-oriented SPARQL templates for exploration, hierarchy tracing, labels, and related concepts.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `vocabulary` | string | no | Optional vocabulary identifier to include in the response |
+| `task` | string | no | One of `explore`, `hierarchy`, `labels`, `related`, or `all` |
+
 ### SPARQL Tools
 
 SPARQL tools enable direct querying of RDF data. Set `SPARQL_ENDPOINT_URL` environment variable to enable these tools. Supports both SPARQL 1.1 Query and Update protocols, with optional HTTP Basic authentication.
@@ -451,7 +490,7 @@ MCP Client (AI Assistant)
        │ stdio (JSON-RPC)
        ▼
  McpServer (SDK)
-  ├── 13 Tools (Zod-validated)
+  ├── 17 Tools (Zod-validated)
   └── 3 Resources
        │
   ┌────┴────┐

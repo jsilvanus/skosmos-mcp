@@ -11,6 +11,7 @@ export const broaderConceptsSchema = z.object({
   vocabulary: z.string().min(1),
   depth: z.number().int().positive().optional(),
   lang: z.string().optional(),
+  include_explanation: z.boolean().optional(),
   server_url: z.string().url().optional(),
 });
 
@@ -19,6 +20,7 @@ export const narrowerConceptsSchema = z.object({
   vocabulary: z.string().min(1),
   depth: z.number().int().positive().optional(),
   lang: z.string().optional(),
+  include_explanation: z.boolean().optional(),
   server_url: z.string().url().optional(),
 });
 
@@ -27,6 +29,7 @@ export const relatedConceptsSchema = z.object({
   vocabulary: z.string().min(1),
   depth: z.number().int().positive().optional(),
   lang: z.string().optional(),
+  include_explanation: z.boolean().optional(),
   server_url: z.string().url().optional(),
 });
 
@@ -36,8 +39,28 @@ export const traverseConceptsSchema = z.object({
   relationships: z.array(z.enum(['broader', 'narrower', 'related'])).min(1),
   depth: z.number().int().positive().optional(),
   lang: z.string().optional(),
+  include_explanation: z.boolean().optional(),
   server_url: z.string().url().optional(),
 });
+
+function buildTraversalExplanation(
+  uri: string,
+  vocabulary: string,
+  relation: 'broader' | 'narrower' | 'related' | 'mixed',
+  depth: number,
+  traversalResult: { nodes: Array<{ depth: number }>; edges: Array<unknown>; rootUri: string },
+): Record<string, unknown> {
+  return {
+    requestedUri: uri,
+    vocabulary,
+    relation,
+    requestedDepth: depth,
+    nodeCount: traversalResult.nodes.length,
+    edgeCount: traversalResult.edges.length,
+    rootUri: traversalResult.rootUri,
+    summary: `Discovered ${traversalResult.nodes.length} concepts and ${traversalResult.edges.length} relationships in a ${relation} traversal.`,
+  };
+}
 
 export async function handleBroaderConcepts(
   args: z.infer<typeof broaderConceptsSchema>,
@@ -48,7 +71,16 @@ export async function handleBroaderConcepts(
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const lang = args.lang ?? config.defaultLanguage;
   const depth = Math.min(args.depth ?? config.maxTraversalDepth, config.maxTraversalDepth);
-  const cacheKey = CacheKeys.traversal(args.uri, args.vocabulary, 'broader', lang, depth, undefined, args.server_url);
+  const cacheKey = CacheKeys.traversal(
+    args.uri,
+    args.vocabulary,
+    'broader',
+    lang,
+    depth,
+    undefined,
+    args.server_url,
+    args.include_explanation,
+  );
   const cached = cache.traversal.get(cacheKey);
   if (cached) {
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
@@ -56,8 +88,11 @@ export async function handleBroaderConcepts(
 
   const activeClient = getClient(client, config, args.server_url);
   const result = await traversal.traverseBroader(args.vocabulary, args.uri, depth, lang, activeClient);
-  cache.traversal.set(cacheKey, result);
-  return { content: [{ type: 'text', text: JSON.stringify(result) }] };
+  const payload = args.include_explanation
+    ? { ...result, explanation: buildTraversalExplanation(args.uri, args.vocabulary, 'broader', depth, result) }
+    : result;
+  cache.traversal.set(cacheKey, payload);
+  return { content: [{ type: 'text', text: JSON.stringify(payload) }] };
 }
 
 export async function handleNarrowerConcepts(
@@ -69,7 +104,16 @@ export async function handleNarrowerConcepts(
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const lang = args.lang ?? config.defaultLanguage;
   const depth = Math.min(args.depth ?? config.maxTraversalDepth, config.maxTraversalDepth);
-  const cacheKey = CacheKeys.traversal(args.uri, args.vocabulary, 'narrower', lang, depth, undefined, args.server_url);
+  const cacheKey = CacheKeys.traversal(
+    args.uri,
+    args.vocabulary,
+    'narrower',
+    lang,
+    depth,
+    undefined,
+    args.server_url,
+    args.include_explanation,
+  );
   const cached = cache.traversal.get(cacheKey);
   if (cached) {
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
@@ -77,8 +121,11 @@ export async function handleNarrowerConcepts(
 
   const activeClient = getClient(client, config, args.server_url);
   const result = await traversal.traverseNarrower(args.vocabulary, args.uri, depth, lang, activeClient);
-  cache.traversal.set(cacheKey, result);
-  return { content: [{ type: 'text', text: JSON.stringify(result) }] };
+  const payload = args.include_explanation
+    ? { ...result, explanation: buildTraversalExplanation(args.uri, args.vocabulary, 'narrower', depth, result) }
+    : result;
+  cache.traversal.set(cacheKey, payload);
+  return { content: [{ type: 'text', text: JSON.stringify(payload) }] };
 }
 
 export async function handleRelatedConcepts(
@@ -90,7 +137,16 @@ export async function handleRelatedConcepts(
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const lang = args.lang ?? config.defaultLanguage;
   const depth = Math.min(args.depth ?? config.maxTraversalDepth, config.maxTraversalDepth);
-  const cacheKey = CacheKeys.traversal(args.uri, args.vocabulary, 'related', lang, depth, undefined, args.server_url);
+  const cacheKey = CacheKeys.traversal(
+    args.uri,
+    args.vocabulary,
+    'related',
+    lang,
+    depth,
+    undefined,
+    args.server_url,
+    args.include_explanation,
+  );
   const cached = cache.traversal.get(cacheKey);
   if (cached) {
     return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
@@ -98,8 +154,11 @@ export async function handleRelatedConcepts(
 
   const activeClient = getClient(client, config, args.server_url);
   const result = await traversal.traverseRelated(args.vocabulary, args.uri, depth, lang, activeClient);
-  cache.traversal.set(cacheKey, result);
-  return { content: [{ type: 'text', text: JSON.stringify(result) }] };
+  const payload = args.include_explanation
+    ? { ...result, explanation: buildTraversalExplanation(args.uri, args.vocabulary, 'related', depth, result) }
+    : result;
+  cache.traversal.set(cacheKey, payload);
+  return { content: [{ type: 'text', text: JSON.stringify(payload) }] };
 }
 
 export async function handleTraverseConcepts(
@@ -119,6 +178,7 @@ export async function handleTraverseConcepts(
     depth,
     args.relationships,
     args.server_url,
+    args.include_explanation,
   );
   const cached = cache.traversal.get(cacheKey);
   if (cached) {
@@ -127,6 +187,9 @@ export async function handleTraverseConcepts(
 
   const activeClient = getClient(client, config, args.server_url);
   const result = await traversal.traverseMixed(args.vocabulary, args.uri, args.relationships, depth, lang, activeClient);
-  cache.traversal.set(cacheKey, result);
-  return { content: [{ type: 'text', text: JSON.stringify(result) }] };
+  const payload = args.include_explanation
+    ? { ...result, explanation: buildTraversalExplanation(args.uri, args.vocabulary, 'mixed', depth, result) }
+    : result;
+  cache.traversal.set(cacheKey, payload);
+  return { content: [{ type: 'text', text: JSON.stringify(payload) }] };
 }
