@@ -94,10 +94,12 @@ export const CacheKeys = {
     depth?: number,
     relationships?: string[],
     serverUrl?: string,
+    includeExplanation?: boolean,
   ): string => {
     const server = normalizeServerUrl(serverUrl);
     const d = depth ?? '';
     const rel = relationships?.join(',') ?? '';
-    return `traversal:${server}:${traversalType}:${uri}:${vocabulary}:${lang}:${d}:${rel}`;
+    const explanationFlag = includeExplanation === true ? 'true' : 'false';
+    return `traversal:${server}:${traversalType}:${uri}:${vocabulary}:${lang}:${d}:${rel}:${explanationFlag}`;
   },
 };
