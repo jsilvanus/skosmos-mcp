@@ -14,3 +14,16 @@ services:
       SPARQL_ALLOW_OTHER_ENDPOINTS: "true"
     ports:
       - "3020:3000"
+
+  skosmos-mcp-stdio:
+    build:
+      context: .
+      target: stdio
+    image: skosmos-mcp:stdio-latest
+    env_file:
+      - .env
+    environment:
+      SKOSMOS_TOOL_SERVER_URL_ALLOWED: "true"
+      SPARQL_ALLOW_OTHER_ENDPOINTS: "true"
+    stdin_open: true
+    tty: false
