@@ -1,0 +1,208 @@
+{
+  "manifest_version": "0.3",
+  "name": "skosmos-mcp",
+  "display_name": "Skosmos MCP Server",
+  "version": "0.2.1",
+  "description": "MCP server wrapping the Skosmos REST API for SKOS vocabulary navigation and management",
+  "long_description": "A production-quality Model Context Protocol (MCP) server that wraps the Skosmos REST API, enabling AI assistants to navigate and query SKOS vocabularies. Includes 13 MCP tools for vocabulary browsing, concept lookup, full-text search, label resolution, and BFS traversal, plus 4 SPARQL tools for direct RDF data access. Features TTL-based in-memory cache, retry logic with exponential backoff, strict TypeScript validation, and Zod-validated inputs.",
+  "author": {
+    "name": "jsilvanus",
+    "url": "https://github.com/jsilvanus"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jsilvanus/skosmos-mcp.git"
+  },
+  "homepage": "https://github.com/jsilvanus/skosmos-mcp",
+  "documentation": "https://github.com/jsilvanus/skosmos-mcp#readme",
+  "support": "https://github.com/jsilvanus/skosmos-mcp/issues",
+  "server": {
+    "type": "binary",
+    "entry_point": "docker",
+    "mcp_config": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "ghcr.io/jsilvanus/skosmos-mcp:stdio-latest"
+      ],
+      "env": {
+        "SKOSMOS_BASE_URL": "${user_config.skosmos_base_url}",
+        "SKOSMOS_DEFAULT_VOCABULARY": "${user_config.skosmos_default_vocabulary}",
+        "SKOSMOS_DEFAULT_LANGUAGE": "${user_config.skosmos_default_language}",
+        "SKOSMOS_TIMEOUT": "${user_config.skosmos_timeout}",
+        "SKOSMOS_CACHE_TTL": "${user_config.skosmos_cache_ttl}",
+        "SKOSMOS_MAX_TRAVERSAL_DEPTH": "${user_config.skosmos_max_traversal_depth}",
+        "SKOSMOS_TOOL_SERVER_URL_ALLOWED": "${user_config.skosmos_tool_server_url_allowed}",
+        "SPARQL_ENDPOINT_URL": "${user_config.sparql_endpoint_url}",
+        "SPARQL_ALLOW_OTHER_ENDPOINTS": "${user_config.sparql_allow_other_endpoints}",
+        "LOG_LEVEL": "${user_config.log_level}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "list_vocabularies",
+      "description": "List all available vocabularies in the Skosmos instance"
+    },
+    {
+      "name": "get_vocabulary",
+      "description": "Get details of a specific vocabulary including top concepts"
+    },
+    {
+      "name": "get_concept",
+      "description": "Get full concept details including broader, narrower, and related concepts"
+    },
+    {
+      "name": "get_concept_label",
+      "description": "Get all labels (prefLabel, altLabel, hiddenLabel) for a concept URI"
+    },
+    {
+      "name": "concept_path",
+      "description": "Get the hierarchy path from a concept to its root via broader transitive relations"
+    },
+    {
+      "name": "search_concepts",
+      "description": "Full-text search for concepts across one or all vocabularies"
+    },
+    {
+      "name": "autocomplete",
+      "description": "Autocomplete concept labels by prefix"
+    },
+    {
+      "name": "resolve_label",
+      "description": "Resolve a label text to concepts in a vocabulary"
+    },
+    {
+      "name": "labels",
+      "description": "Get all labels for a concept URI in a vocabulary"
+    },
+    {
+      "name": "broader_concepts",
+      "description": "BFS traversal of broader (parent) concepts up to a specified depth"
+    },
+    {
+      "name": "narrower_concepts",
+      "description": "BFS traversal of narrower (child) concepts down to a specified depth"
+    },
+    {
+      "name": "related_concepts",
+      "description": "BFS traversal of related concepts up to a specified depth"
+    },
+    {
+      "name": "traverse_concepts",
+      "description": "BFS traversal using a mix of broader, narrower, and/or related relationships"
+    },
+    {
+      "name": "execute_sparql_query",
+      "description": "Execute a SPARQL query against a SPARQL endpoint (SELECT, CONSTRUCT, ASK, or DESCRIBE)"
+    },
+    {
+      "name": "execute_sparql_update",
+      "description": "Execute a SPARQL update query against a SPARQL endpoint"
+    },
+    {
+      "name": "list_sparql_graphs",
+      "description": "List all available named graphs in a SPARQL endpoint"
+    },
+    {
+      "name": "sparql_query_templates",
+      "description": "Get SPARQL query templates for common knowledge graph exploration patterns"
+    }
+  ],
+  "tools_generated": false,
+  "keywords": [
+    "skosmos",
+    "skos",
+    "vocabulary",
+    "thesaurus",
+    "rdf",
+    "sparql",
+    "semantic-web",
+    "knowledge-graph"
+  ],
+  "license": "MIT",
+  "user_config": {
+    "skosmos_base_url": {
+      "type": "string",
+      "title": "Skosmos Base URL",
+      "description": "Base URL of the Skosmos instance (e.g., https://api.finto.fi)",
+      "default": "https://api.finto.fi",
+      "required": true
+    },
+    "skosmos_default_vocabulary": {
+      "type": "string",
+      "title": "Default Vocabulary",
+      "description": "Default vocabulary ID to use when not specified in a tool call (optional)",
+      "required": false
+    },
+    "skosmos_default_language": {
+      "type": "string",
+      "title": "Default Language",
+      "description": "Default language code for labels (e.g., en, fi)",
+      "default": "en",
+      "required": false
+    },
+    "skosmos_timeout": {
+      "type": "number",
+      "title": "Skosmos Timeout (ms)",
+      "description": "HTTP request timeout in milliseconds",
+      "default": 30000,
+      "min": 1000,
+      "max": 300000,
+      "required": false
+    },
+    "skosmos_cache_ttl": {
+      "type": "number",
+      "title": "Cache TTL (seconds)",
+      "description": "Cache entry time-to-live in seconds",
+      "default": 300,
+      "min": 0,
+      "max": 86400,
+      "required": false
+    },
+    "skosmos_max_traversal_depth": {
+      "type": "number",
+      "title": "Max Traversal Depth",
+      "description": "Hard cap on BFS traversal depth",
+      "default": 5,
+      "min": 1,
+      "max": 20,
+      "required": false
+    },
+    "skosmos_tool_server_url_allowed": {
+      "type": "string",
+      "title": "Allow Custom Skosmos URLs",
+      "description": "When true, allows tools to accept optional server_url parameter to call a different Skosmos instance",
+      "default": "true",
+      "required": false
+    },
+    "sparql_endpoint_url": {
+      "type": "string",
+      "title": "SPARQL Endpoint URL",
+      "description": "SPARQL endpoint URL (optional; enables SPARQL tools)",
+      "required": false
+    },
+    "sparql_allow_other_endpoints": {
+      "type": "string",
+      "title": "Allow Other SPARQL Endpoints",
+      "description": "When true, allows SPARQL tools to accept optional endpoint parameter to query a different SPARQL endpoint",
+      "default": "true",
+      "required": false
+    },
+    "log_level": {
+      "type": "string",
+      "title": "Log Level",
+      "description": "Log level: debug, info, warn, error",
+      "default": "info",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "docker": ">=20.0.0"
+    }
+  }
+}
