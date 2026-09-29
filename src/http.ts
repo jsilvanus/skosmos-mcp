@@ -1,17 +1,12 @@
 #!/usr/bin/env node
-import type { IncomingMessage, ServerResponse } from 'node:http';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { createMcpExpressApp } from '@modelcontextprotocol/sdk/server/express.js';
-import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { loadConfig } from './config/index.js';
-import { SkosmosClient } from './api/client.js';
-import { CacheManager } from './cache/index.js';
-import { TraversalEngine } from './traversal/engine.js';
-import { createServer } from './server/index.js';
+import { loadAuthConfig } from './auth/config.js';
+import { createHttpApp, parseTrustProxy } from './http-app.js';
 import { logger } from './util/logger.js';
 
 async function main(): Promise<void> {
   const config = loadConfig();
+  const trustProxy = parseTrustProxy(process.env['MCP_TRUST_PROXY']);
   logger.info('Starting skosmos-mcp HTTP server', {
     baseUrl: config.baseUrl,
     defaultLanguage: config.defaultLanguage,
@@ -27,33 +22,17 @@ async function main(): Promise<void> {
     });
   }
 
-  const client = new SkosmosClient(config);
-  const cacheManager = new CacheManager(config.cacheTtl);
-  const traversalEngine = new TraversalEngine(client, config);
+  const auth = loadAuthConfig();
+  if (auth) {
+    logger.info('OAuth with OIDC sign-in is enabled; /mcp requires an access token', {
+      publicUrl: auth.publicUrl,
+      oidcIssuer: auth.oidc.issuer,
+    });
+  }
 
-  const app = createMcpExpressApp({ host: config.httpHost });
-
-  app.post('/mcp', async (req: IncomingMessage, res: ServerResponse) => {
-    const server = createServer(config, client, traversalEngine, cacheManager);
-    // Stateless mode: no sessionIdGenerator
-    const transport = new StreamableHTTPServerTransport({});
-    await server.connect(transport as unknown as Transport);
-    // req.body is populated by the express.json() middleware in createMcpExpressApp
-    await transport.handleRequest(req, res, (req as { body?: unknown }).body);
-  });
-
-  app.get('/mcp', (_req: IncomingMessage, res: ServerResponse) => {
-    res.writeHead(405, { Allow: 'POST', 'Content-Type': 'application/json' });
-    res.end(
-      JSON.stringify({ jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed.' }, id: null }),
-    );
-  });
-
-  app.delete('/mcp', (_req: IncomingMessage, res: ServerResponse) => {
-    res.writeHead(405, { Allow: 'POST', 'Content-Type': 'application/json' });
-    res.end(
-      JSON.stringify({ jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed.' }, id: null }),
-    );
+  const app = createHttpApp(config, {
+    ...(auth ? { auth } : {}),
+    ...(trustProxy !== undefined ? { trustProxy } : {}),
   });
 
   app.listen(config.httpPort, config.httpHost, () => {

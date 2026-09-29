@@ -108,6 +108,21 @@ SPARQL_ALLOW_OTHER_ENDPOINTS=true
 | `SPARQL_PASSWORD` | — | Password for SPARQL endpoint HTTP Basic auth (optional) |
 | `SPARQL_ALLOW_OTHER_ENDPOINTS` | `false` | When `true`, allows SPARQL tools to accept optional `endpoint` parameter to query a different SPARQL endpoint |
 
+HTTP transport only — OAuth with single sign-on (see [OAuth and OIDC sign-in](#oauth-and-oidc-sign-in-http-only)). All of these are ignored while `OIDC_ISSUER` is unset, and the stdio server never reads them.
+
+| Variable | Default | Description |
+|---|---|---|
+| `OIDC_ISSUER` | — | Issuer URL exactly as the IdP publishes it (authentik: `https://auth.example.org/application/o/<slug>/`, keep the trailing slash). **Unset/empty = OAuth is off and `/mcp` is open, as before.** |
+| `OIDC_CLIENT_ID` | — | Required when `OIDC_ISSUER` is set |
+| `OIDC_CLIENT_SECRET` | — | Set = confidential client (`client_secret_basic`); unset = public client. PKCE is always used. |
+| `OIDC_SCOPES` | `openid email profile` | Must contain `openid` |
+| `OIDC_BUTTON_LABEL` | `Sign in with single sign-on` | Text of the sign-in button |
+| `MCP_PUBLIC_URL` | — | Required when `OIDC_ISSUER` is set. Public origin of this server, e.g. `https://skosmos-mcp.example.org`. The OAuth issuer, the MCP resource (`<MCP_PUBLIC_URL>/mcp`) and the OIDC redirect URI (`<MCP_PUBLIC_URL>/oidc/callback`) derive from it. |
+| `JWT_SECRET` | — | Required when `OIDC_ISSUER` is set. Base64, at least 32 bytes (`openssl rand -base64 32`). Signs access tokens, refresh tokens and sign-in tickets; rotating it signs everybody out. |
+| `MCP_TRUST_PROXY` | — | Express `trust proxy` setting (`true`, a hop count, or addresses) so the per-IP rate limit of the sign-in and token endpoints sees client IPs behind a reverse proxy |
+
+With `NODE_ENV=production` (the default in the Docker image) `OIDC_ISSUER` and `MCP_PUBLIC_URL` must be `https:`. Invalid values stop the server at startup with a clear error. `OIDC_CREATE_USERS` and `OIDC_TRUST_EMAIL`, used by other MCP apps of this family, do not apply here: there are no local users.
+
 ---
 
 ## MCP Tools Reference
@@ -451,6 +466,36 @@ SKOSMOS_BASE_URL=https://skosmos.example.org MCP_HTTP_PORT=3000 node dist/http.j
 The server listens on `http://<MCP_HTTP_HOST>:<MCP_HTTP_PORT>/mcp` (default: `http://127.0.0.1:3000/mcp`).
 Each POST request is handled as a stateless MCP session (no session ID). The `SkosmosClient` and `CacheManager` instances are shared across requests for the lifetime of the process.
 
+### OAuth and OIDC sign-in (HTTP only)
+
+By default the HTTP server has no authentication. Set `OIDC_ISSUER` (plus `OIDC_CLIENT_ID`, `MCP_PUBLIC_URL` and `JWT_SECRET`) to require sign-in through your identity provider (e.g. authentik). The server then acts as:
+
+- an **OAuth authorization server for MCP clients**, following the MCP authorization spec: CIMD client ids (the `client_id` is an `https:` URL of the client's metadata document), authorization code + S256 PKCE at `/oauth/authorize` and `/oauth/token`, refresh tokens, and JWT access tokens bound to `iss` = `MCP_PUBLIC_URL` and `aud` = `<MCP_PUBLIC_URL>/mcp`;
+- an **OAuth resource server** for `/mcp`: requests without a valid access token get `401` with `WWW-Authenticate: Bearer resource_metadata="<MCP_PUBLIC_URL>/.well-known/oauth-protected-resource/mcp"`;
+- an **OIDC Relying Party** toward the IdP. It never issues ID tokens and is not an OpenID Provider.
+
+Discovery: `/.well-known/oauth-protected-resource/mcp` (RFC 9728, also at `/.well-known/oauth-protected-resource`), `/.well-known/oauth-authorization-server` and the `/.well-known/openid-configuration` alias of the same OAuth metadata.
+
+Flow: the MCP client opens `/oauth/authorize`; the page shows a single sign-on button, which goes to `/oidc/login` and on to the IdP (state, nonce and PKCE; the state is also kept in a short-lived `skosmos_oidc` cookie against login CSRF). The IdP returns to `/oidc/callback`, the ID token is verified, and a consent page (Approve/Deny) finishes the authorization. There is no password sign-in.
+
+There are no local user accounts: the signed-in identity is the IdP issuer + `sub`, carried in the access token (`sub`, `idp_iss`). **Who may sign in is decided by the IdP**, e.g. authentik's application bindings/policies; this server has no allow-list of its own.
+
+State: pending sign-ins (10 min) and authorization codes (60 s) are kept in memory, as this server has no database; a restart only interrupts sign-ins in progress. Refresh tokens (30 days) and access tokens (1 hour) are self-contained signed JWTs, so they survive restarts; revoke them all by rotating `JWT_SECRET`. Run a single instance (or sticky sessions) when OIDC is on.
+
+#### authentik setup
+
+1. *Applications → Providers → Create → OAuth2/OpenID Provider*: client type **Confidential**, redirect URI `<MCP_PUBLIC_URL>/oidc/callback` (strict), and a **signing key** so ID tokens are RS256.
+2. *Applications → Create* an application that uses this provider; bind the users/groups who may use the MCP server.
+3. Copy the provider's **OpenID Configuration Issuer** (`https://auth.example.org/application/o/<slug>/`) to `OIDC_ISSUER`, and the client ID/secret to `OIDC_CLIENT_ID`/`OIDC_CLIENT_SECRET`.
+
+```bash
+OIDC_ISSUER=https://auth.example.org/application/o/skosmos-mcp/ \
+OIDC_CLIENT_ID=... OIDC_CLIENT_SECRET=... \
+MCP_PUBLIC_URL=https://skosmos-mcp.example.org \
+JWT_SECRET=$(openssl rand -base64 32) \
+node dist/http.js
+```
+
 ### Claude Desktop (`claude_desktop_config.json`)
 
 ```json
@@ -513,6 +558,7 @@ TraversalEngine   CacheManager
 - **Depth capping**: `Math.min(requestedDepth, config.maxTraversalDepth)` is applied in both the traversal engine and tool handlers.
 - **Cache keys** include all relevant parameters: `vocabulary:${vocid}:${lang}`, `label:${vocab}:${uri}:${lang}`, etc.
 - **All logging to stderr** — stdout is reserved exclusively for MCP JSON-RPC.
+- **HTTP app**: `src/http-app.ts` builds the Express app (used by `src/http.ts` and the tests). `src/auth/` holds the optional OAuth authorization/resource server and OIDC Relying Party, ported from the jsilvanus/codestash `mcp/api-connector-style` scaffold (Fastify) to Express; it is mounted only when `OIDC_ISSUER` is set. Tests run it against a fake OIDC provider (`tests/helpers/fake-oidc-provider.ts`).
 
 ---
 
