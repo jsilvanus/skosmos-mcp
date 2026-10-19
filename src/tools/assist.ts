@@ -40,7 +40,7 @@ export const suggestSparqlTemplatesSchema = z.object({
   task: z.enum(['explore', 'hierarchy', 'labels', 'related', 'all']).optional(),
 });
 
-function buildTaskGuidance(vocabulary: string, selectedTask?: string) {
+export function buildTaskGuidance(vocabulary: string, selectedTask?: string) {
   const tasks = [
     {
       task: 'explore',

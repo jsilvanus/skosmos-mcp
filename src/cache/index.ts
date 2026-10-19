@@ -48,6 +48,7 @@ export class Cache<T> {
 }
 
 import type {
+  ConceptDetails,
   VocabulariesResponse,
   VocabularyInfoResponse,
   LabelResponse,
@@ -59,6 +60,7 @@ export class CacheManager {
   readonly vocabularies: Cache<VocabulariesResponse>;
   readonly vocabulary: Cache<VocabularyInfoResponse>;
   readonly labels: Cache<LabelResponse>;
+  readonly concept: Cache<ConceptDetails>;
   readonly search: Cache<SearchResponse>;
   readonly traversal: Cache<TraversalResult>;
 
@@ -66,6 +68,7 @@ export class CacheManager {
     this.vocabularies = new Cache<VocabulariesResponse>(ttlSeconds);
     this.vocabulary = new Cache<VocabularyInfoResponse>(ttlSeconds);
     this.labels = new Cache<LabelResponse>(ttlSeconds);
+    this.concept = new Cache<ConceptDetails>(ttlSeconds);
     this.search = new Cache<SearchResponse>(ttlSeconds);
     this.traversal = new Cache<TraversalResult>(ttlSeconds);
   }
@@ -74,6 +77,7 @@ export class CacheManager {
     this.vocabularies.clear();
     this.vocabulary.clear();
     this.labels.clear();
+    this.concept.clear();
     this.search.clear();
     this.traversal.clear();
   }

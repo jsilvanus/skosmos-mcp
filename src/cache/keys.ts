@@ -36,6 +36,14 @@ export const CacheKeys = {
   /**
    * Cache key for get_concept_label and labels
    */
+  /**
+   * Cache key for get_concept and the concept resource
+   */
+  concept: (uri: string, vocabulary: string, lang: string, serverUrl?: string): string => {
+    const server = normalizeServerUrl(serverUrl);
+    return `concept:${server}:${vocabulary}:${uri}:${lang}`;
+  },
+
   conceptLabel: (uri: string, vocabulary: string, lang: string, serverUrl?: string): string => {
     const server = normalizeServerUrl(serverUrl);
     return `label:${server}:${vocabulary}:${uri}:${lang}`;
