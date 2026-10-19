@@ -27,7 +27,7 @@ const SparqlTemplatesInput = z.object({
     .describe('Category of templates to retrieve'),
 });
 
-export async function handleExecuteSparqlQuery(input: unknown, defaultEndpoint?: string, defaultUsername?: string, defaultPassword?: string, allowOtherEndpoints?: boolean) {
+export async function handleExecuteSparqlQuery(input: unknown, defaultEndpoint: string | undefined, defaultUsername: string | undefined, defaultPassword: string | undefined, allowOtherEndpoints: boolean | undefined, userAgent: string) {
   const parsed = ExecuteSparqlQueryInput.parse(input);
   
   // Check if custom endpoint is being used when not allowed
@@ -41,7 +41,7 @@ export async function handleExecuteSparqlQuery(input: unknown, defaultEndpoint?:
     throw new Error('No SPARQL endpoint configured. Set SPARQL_ENDPOINT_URL environment variable or provide endpoint parameter.');
   }
 
-  const client = new SparqlClient(endpoint, defaultUsername || '', defaultPassword || '');
+  const client = new SparqlClient(endpoint, defaultUsername || '', defaultPassword || '', userAgent);
   const result = await client.executeQuery(parsed.query);
 
   return {
@@ -54,7 +54,7 @@ export async function handleExecuteSparqlQuery(input: unknown, defaultEndpoint?:
   };
 }
 
-export async function handleExecuteSparqlUpdate(input: unknown, defaultEndpoint?: string, defaultUsername?: string, defaultPassword?: string, allowOtherEndpoints?: boolean) {
+export async function handleExecuteSparqlUpdate(input: unknown, defaultEndpoint: string | undefined, defaultUsername: string | undefined, defaultPassword: string | undefined, allowOtherEndpoints: boolean | undefined, userAgent: string) {
   const parsed = ExecuteSparqlUpdateInput.parse(input);
   
   // Check if custom endpoint is being used when not allowed
@@ -68,7 +68,7 @@ export async function handleExecuteSparqlUpdate(input: unknown, defaultEndpoint?
     throw new Error('No SPARQL endpoint configured. Set SPARQL_ENDPOINT_URL environment variable or provide endpoint parameter.');
   }
 
-  const client = new SparqlClient(endpoint, defaultUsername || '', defaultPassword || '');
+  const client = new SparqlClient(endpoint, defaultUsername || '', defaultPassword || '', userAgent);
   const result = await client.executeUpdate(parsed.update);
 
   return {
@@ -81,7 +81,7 @@ export async function handleExecuteSparqlUpdate(input: unknown, defaultEndpoint?
   };
 }
 
-export async function handleListGraphs(input: unknown, defaultEndpoint?: string, defaultUsername?: string, defaultPassword?: string, allowOtherEndpoints?: boolean) {
+export async function handleListGraphs(input: unknown, defaultEndpoint: string | undefined, defaultUsername: string | undefined, defaultPassword: string | undefined, allowOtherEndpoints: boolean | undefined, userAgent: string) {
   const parsed = ListGraphsInput.parse(input);
   
   // Check if custom endpoint is being used when not allowed
@@ -95,7 +95,7 @@ export async function handleListGraphs(input: unknown, defaultEndpoint?: string,
     throw new Error('No SPARQL endpoint configured. Set SPARQL_ENDPOINT_URL environment variable or provide endpoint parameter.');
   }
 
-  const client = new SparqlClient(endpoint, defaultUsername || '', defaultPassword || '');
+  const client = new SparqlClient(endpoint, defaultUsername || '', defaultPassword || '', userAgent);
   const graphs = await client.listGraphs();
 
   return {
