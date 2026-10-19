@@ -32,17 +32,20 @@ export class SparqlClient {
   private baseUrl: string;
   private username: string;
   private password: string;
+  private userAgent: string;
 
   /**
    * Creates a new SPARQL client
    * @param baseUrl - SPARQL endpoint URL
    * @param username - Username for HTTP Basic authentication
    * @param password - Password for HTTP Basic authentication
+   * @param userAgent - User-Agent header sent with every request (must be skosmos-mcp/*)
    */
-  constructor(baseUrl: string, username = '', password = '') {
+  constructor(baseUrl: string, username = '', password = '', userAgent: string) {
     this.baseUrl = baseUrl;
     this.username = username;
     this.password = password;
+    this.userAgent = userAgent;
   }
 
   /**
@@ -105,6 +108,7 @@ export class SparqlClient {
         },
         headers: {
           Accept: 'application/sparql-results+json',
+          'User-Agent': this.userAgent,
         },
       };
 
@@ -149,6 +153,7 @@ export class SparqlClient {
       const config: Record<string, unknown> = {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': this.userAgent,
         },
       };
 

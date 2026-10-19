@@ -372,7 +372,7 @@ Property Path Operators:
       endpoint: z.string().url().optional().describe('Optional custom SPARQL endpoint URL'),
     },
     wrapHandler(async (args) =>
-      handleExecuteSparqlQuery(args, config.sparqlEndpoint, config.sparqlUsername, config.sparqlPassword, config.sparqlAllowOtherEndpoints),
+      handleExecuteSparqlQuery(args, config.sparqlEndpoint, config.sparqlUsername, config.sparqlPassword, config.sparqlAllowOtherEndpoints, config.userAgent),
     ),
   );
 
@@ -405,7 +405,7 @@ Example Updates:
       endpoint: z.string().url().optional().describe('Optional custom SPARQL endpoint URL'),
     },
     wrapHandler(async (args) =>
-      handleExecuteSparqlUpdate(args, config.sparqlEndpoint, config.sparqlUsername, config.sparqlPassword, config.sparqlAllowOtherEndpoints),
+      handleExecuteSparqlUpdate(args, config.sparqlEndpoint, config.sparqlUsername, config.sparqlPassword, config.sparqlAllowOtherEndpoints, config.userAgent),
     ),
   );
 
@@ -430,7 +430,7 @@ Use Cases:
       endpoint: z.string().url().optional().describe('Optional custom SPARQL endpoint URL'),
     },
     wrapHandler(async (args) =>
-      handleListGraphs(args, config.sparqlEndpoint, config.sparqlUsername, config.sparqlPassword, config.sparqlAllowOtherEndpoints),
+      handleListGraphs(args, config.sparqlEndpoint, config.sparqlUsername, config.sparqlPassword, config.sparqlAllowOtherEndpoints, config.userAgent),
     ),
   );
 

@@ -38,7 +38,7 @@ describe('loadConfig', () => {
     expect(config.timeout).toBe(30000);
     expect(config.cacheTtl).toBe(300);
     expect(config.maxTraversalDepth).toBe(3);
-    expect(config.userAgent).toBe('skosmos-mcp/0.1.0');
+    expect(config.userAgent).toBe('skosmos-mcp/0.2.1');
     expect(config.httpPort).toBe(3000);
     expect(config.httpHost).toBe('127.0.0.1');
   });
@@ -49,7 +49,7 @@ describe('loadConfig', () => {
     process.env['SKOSMOS_TIMEOUT'] = '5000';
     process.env['SKOSMOS_CACHE_TTL'] = '60';
     process.env['SKOSMOS_MAX_TRAVERSAL_DEPTH'] = '5';
-    process.env['SKOSMOS_USER_AGENT'] = 'my-agent/1.0';
+    process.env['SKOSMOS_USER_AGENT'] = 'skosmos-mcp/1.0.0';
     process.env['MCP_HTTP_PORT'] = '4000';
     process.env['MCP_HTTP_HOST'] = '0.0.0.0';
 
@@ -59,9 +59,15 @@ describe('loadConfig', () => {
     expect(config.timeout).toBe(5000);
     expect(config.cacheTtl).toBe(60);
     expect(config.maxTraversalDepth).toBe(5);
-    expect(config.userAgent).toBe('my-agent/1.0');
+    expect(config.userAgent).toBe('skosmos-mcp/1.0.0');
     expect(config.httpPort).toBe(4000);
     expect(config.httpHost).toBe('0.0.0.0');
+  });
+
+  it('rejects a User-Agent that does not start with skosmos-mcp/', () => {
+    process.env['SKOSMOS_USER_AGENT'] = 'my-agent/1.0';
+
+    expect(() => loadConfig()).toThrow();
   });
 
   it('sets defaultVocabulary when env var is provided', () => {

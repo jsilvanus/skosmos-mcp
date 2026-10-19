@@ -96,7 +96,7 @@ SPARQL_ALLOW_OTHER_ENDPOINTS=true
 | `SKOSMOS_DEFAULT_VOCABULARY` | — | Default vocabulary id when not specified in a tool call |
 | `SKOSMOS_DEFAULT_LANGUAGE` | `en` | Default language code for labels |
 | `SKOSMOS_TIMEOUT` | `30000` | HTTP request timeout in milliseconds |
-| `SKOSMOS_USER_AGENT` | `skosmos-mcp/0.1.0` | User-Agent header sent with API requests |
+| `SKOSMOS_USER_AGENT` | `skosmos-mcp/0.2.1` | User-Agent header sent with REST and SPARQL requests. **Must start with `skosmos-mcp/`** (e.g. `skosmos-mcp/0.2.1`); the config is rejected otherwise. Finto's access rules for this client are written against this pattern, and other User-Agent values may be blocked with 403 |
 | `SKOSMOS_CACHE_TTL` | `300` | Cache entry TTL in seconds |
 | `SKOSMOS_MAX_TRAVERSAL_DEPTH` | `3` | Hard cap on BFS traversal depth |
 | `SKOSMOS_TOOL_SERVER_URL_ALLOWED` | `false` | When `true`, allows tools to accept optional `server_url` parameter to call a different Skosmos instance |

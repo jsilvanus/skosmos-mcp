@@ -5,7 +5,7 @@ const configSchema = z.object({
   defaultVocabulary: z.string().optional(),
   defaultLanguage: z.string().default('en'),
   timeout: z.number().int().positive().default(30000),
-  userAgent: z.string().default('skosmos-mcp/0.1.0'),
+  userAgent: z.string().regex(/^skosmos-mcp\//).default('skosmos-mcp/0.2.1'),
   cacheTtl: z.number().int().nonnegative().default(300),
   maxTraversalDepth: z.number().int().positive().default(3),
   httpPort: z.number().int().positive().default(3000),
