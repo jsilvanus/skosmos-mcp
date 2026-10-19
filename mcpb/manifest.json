@@ -44,19 +44,19 @@
   "tools": [
     {
       "name": "list_vocabularies",
-      "description": "List all available vocabularies in the Skosmos instance"
+      "description": "DEPRECATED (use resource skosmos://vocabularies; removed in 1.0). List all available vocabularies in the Skosmos instance"
     },
     {
       "name": "get_vocabulary",
-      "description": "Get details of a specific vocabulary including top concepts"
+      "description": "DEPRECATED (use resource skosmos://{vocid}; removed in 1.0). Get details of a specific vocabulary including top concepts"
     },
     {
       "name": "get_concept",
-      "description": "Get full concept details including broader, narrower, and related concepts"
+      "description": "DEPRECATED (use resource skosmos://{vocid}/{encodedUri}; removed in 1.0). Get full concept details including broader, narrower, and related concepts"
     },
     {
       "name": "get_concept_label",
-      "description": "Get all labels (prefLabel, altLabel, hiddenLabel) for a concept URI"
+      "description": "DEPRECATED (use resource skosmos://{vocid}/{encodedUri}/labels; removed in 1.0). Get all labels (prefLabel, altLabel, hiddenLabel) for a concept URI"
     },
     {
       "name": "concept_path",
@@ -76,19 +76,35 @@
     },
     {
       "name": "labels",
-      "description": "Get all labels for a concept URI in a vocabulary"
+      "description": "DEPRECATED (use resource skosmos://{vocid}/{encodedUri}/labels; removed in 1.0). Get all labels for a concept URI in a vocabulary"
+    },
+    {
+      "name": "vocabulary_schema_overview",
+      "description": "DEPRECATED (use resource skosmos-overview://{vocid}; removed in 1.0). Summarize a vocabulary structure with entry points, relationship hints, and suggested tasks"
+    },
+    {
+      "name": "query_guidance",
+      "description": "DEPRECATED (use prompt query_guidance; removed in 1.0). Return curated guidance for common SKOS vocabulary tasks such as exploration, label resolution, or hierarchy traversal"
+    },
+    {
+      "name": "reconcile_concept",
+      "description": "Resolve a label to one or more concept candidates using Skosmos lookup and search"
+    },
+    {
+      "name": "suggest_sparql_templates",
+      "description": "DEPRECATED (use resource skosmos-sparql://templates/{category}; removed in 1.0). Return SKOS-oriented SPARQL templates for exploration, hierarchy tracing, labels, and related concepts"
     },
     {
       "name": "broader_concepts",
-      "description": "BFS traversal of broader (parent) concepts up to a specified depth"
+      "description": "DEPRECATED (use tool traverse_concepts with relationships [\"broader\"]; removed in 1.0). BFS traversal of broader (parent) concepts up to a specified depth"
     },
     {
       "name": "narrower_concepts",
-      "description": "BFS traversal of narrower (child) concepts down to a specified depth"
+      "description": "DEPRECATED (use tool traverse_concepts with relationships [\"narrower\"]; removed in 1.0). BFS traversal of narrower (child) concepts down to a specified depth"
     },
     {
       "name": "related_concepts",
-      "description": "BFS traversal of related concepts up to a specified depth"
+      "description": "DEPRECATED (use tool traverse_concepts with relationships [\"related\"]; removed in 1.0). BFS traversal of related concepts up to a specified depth"
     },
     {
       "name": "traverse_concepts",
@@ -96,19 +112,19 @@
     },
     {
       "name": "execute_sparql_query",
-      "description": "Execute a SPARQL query against a SPARQL endpoint (SELECT, CONSTRUCT, ASK, or DESCRIBE)"
+      "description": "Execute a SPARQL query (SELECT, CONSTRUCT, ASK, or DESCRIBE) against a SPARQL endpoint. Syntax reference and examples: resource skosmos-sparql://reference."
     },
     {
       "name": "execute_sparql_update",
-      "description": "Execute a SPARQL update query against a SPARQL endpoint"
+      "description": "DESTRUCTIVE: executes a SPARQL update (INSERT, DELETE, LOAD, CLEAR, ...) against a SPARQL endpoint. Syntax reference and examples: resource skosmos-sparql://reference."
     },
     {
       "name": "list_sparql_graphs",
-      "description": "List all available named graphs in a SPARQL endpoint"
+      "description": "List the named graphs in a SPARQL endpoint. Graph conventions: resource skosmos-sparql://reference."
     },
     {
       "name": "sparql_query_templates",
-      "description": "Get SPARQL query templates for common knowledge graph exploration patterns"
+      "description": "DEPRECATED (use resource skosmos-sparql://templates/{category}; removed in 1.0). Get SPARQL query templates for common SKOS exploration patterns."
     }
   ],
   "tools_generated": false,
@@ -200,7 +216,11 @@
     }
   },
   "compatibility": {
-    "platforms": ["darwin", "win32", "linux"],
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
     "runtimes": {
       "docker": ">=20.0.0"
     }
