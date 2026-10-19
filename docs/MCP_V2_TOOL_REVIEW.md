@@ -1,6 +1,6 @@
 # MCP v2: tool and resource review
 
-Status: proposal, for discussion. No behaviour changes in this document.
+Status: decided and implemented on this branch. The tool and resource changes below are in the code; see "Implementation status" at the end.
 
 Scope: the 21 tools registered in `src/server/index.ts` and the 3 resources in `src/server/resources.ts`, as of `main` at `4370f49`. The installed SDK is `@modelcontextprotocol/sdk` 1.29.0.
 
@@ -66,12 +66,34 @@ Concept URIs contain `/`, so `{encodedUri}` must stay percent-encoded. That work
 6. **Keep descriptions short.** Move the SPARQL cheat sheets (the two longest descriptions) into resources, as above.
 7. **Consider structured output.** Add `outputSchema` for the tools whose results are JSON, so clients can parse them without guessing.
 
-## Open questions
+## Decisions
 
-1. **Which clients must work?** If the target clients do not surface resources to the model (some MCP clients expose only tools), moving reads to resources hides them. In that case keep `get_concept`, `list_vocabularies` and `get_vocabulary` as tools as well. This is the main trade-off in this proposal.
-2. **Compatibility aliases for v1 tools?** Keep the old tool names as thin aliases for one release, then remove them in v2? Or break cleanly?
-3. **Should `execute_sparql_update` stay in the default tool set?** Against Finto, which is read-only in practice, the tool only adds risk. Should it be opt-in?
-4. **Should `query_guidance` become a prompt rather than a resource?** Prompts suit a user choosing a task. Resources suit a client reading reference text.
+1. **Read tools stay, marked deprecated, removed in 1.0.** Clients that cannot read resources keep working. Each deprecated tool's description starts with `DEPRECATED (use <replacement>; removed in 1.0).`
+2. **Aliases stay too.** Merged tools keep their old names as deprecated aliases until 1.0. Their replacements are listed in the table above.
+3. **`execute_sparql_update` stays, marked destructive** (`destructiveHint: true`). Its description starts with `DESTRUCTIVE:`. It is not opt-in.
+4. **`query_guidance` becomes a prompt.** The tool is deprecated and removed in 1.0.
+
+`resolve_label` and `reconcile_concept` are unchanged. The overlap check is still open.
+
+## Implementation status
+
+Plumbing:
+
+- [x] Non-deprecated registration API: `registerTool`, `registerResource`, `registerPrompt`
+- [x] Tool annotations: `readOnlyHint` on read tools, `destructiveHint` on `execute_sparql_update`
+- [x] Server version read from `package.json`
+- [x] Vocabulary resource template has a `list` callback. The concept template does not, because enumerating every concept is not feasible.
+- [x] Concept resource and `get_concept` share one handler, so they return the same fields. Concept results are cached (`cache.concept`), so repeated reads are cheap. The first read still makes four upstream calls.
+- [x] SPARQL syntax text moved out of tool descriptions into `skosmos-sparql://reference`. Each tool description is now under 400 characters, enforced by a test.
+- [ ] `outputSchema` for tools with JSON results. Deferred. It needs a zod schema per response type, which is a separate piece of work. The handlers already return JSON text, so this can follow without changing the tool names.
+
+Resources and prompts added: `skosmos://{vocid}/{encodedUri}/labels`, `skosmos-overview://{vocid}`, `skosmos-sparql://templates/{category}`, `skosmos-sparql://reference`, and the `query_guidance` prompt. The `skosmos://vocabularies`, `skosmos://{vocid}` and `skosmos://{vocid}/{encodedUri}` resources already existed.
+
+The URIs differ from the proposal table in two places. The overview and SPARQL resources use their own schemes (`skosmos-overview://`, `skosmos-sparql://`), so they cannot collide with the two-segment concept template. The guidance resource became the `query_guidance` prompt, as decided above.
+
+Not done: a resource for `list_sparql_graphs` on the default endpoint. The tool stays as it is.
+
+Tests: `tests/server/mcp-v2.test.ts` connects an MCP client in memory to check the tool annotations, deprecation text, resource and template listings, the reference resource, concept reads, and the prompt.
 
 ## Suggested order
 

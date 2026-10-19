@@ -203,3 +203,12 @@ export interface MappingsResponse {
     to?: { memberSet?: Array<{ uri: string; prefLabel?: Record<string, string> }> };
   }>;
 }
+
+export interface ConceptDetails {
+  uri: string;
+  prefLabel?: string | undefined;
+  altLabel?: string[] | undefined;
+  broader: NonNullable<BroaderResponse['broader']>;
+  narrower: NonNullable<NarrowerResponse['narrower']>;
+  related: NonNullable<RelatedResponse['related']>;
+}

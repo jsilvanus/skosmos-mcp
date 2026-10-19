@@ -378,11 +378,33 @@ Get pre-built SPARQL query templates for common data exploration patterns.
 
 ## MCP Resources
 
+Resources are read-only and addressable by URI. `skosmos://{vocid}` and `skosmos://{vocid}/{encodedUri}` list their entries where the server can enumerate them.
+
 | URI Pattern | Description |
 |---|---|
 | `skosmos://vocabularies` | JSON list of all vocabularies |
-| `skosmos://{vocid}` | Vocabulary metadata for `{vocid}` |
-| `skosmos://{vocid}/{encodedUri}` | Concept data (labels, broader, narrower, related) |
+| `skosmos://{vocid}` | Vocabulary metadata for `{vocid}` (listed per vocabulary) |
+| `skosmos://{vocid}/{encodedUri}` | Concept data (labels, broader, narrower, related). `encodedUri` is the percent-encoded concept URI |
+| `skosmos://{vocid}/{encodedUri}/labels` | All labels (prefLabel, altLabel, hiddenLabel) for a concept |
+| `skosmos-overview://{vocid}` | Structure summary of a vocabulary: entry points, relationship hints, suggested tasks |
+| `skosmos-sparql://templates/{category}` | SKOS SPARQL query templates; `category` is one of `exploration`, `property-paths`, `statistics`, `validation`, `schema`, `all` |
+| `skosmos-sparql://reference` | SPARQL query, update and named graph reference (Markdown) |
+
+## MCP Prompts
+
+| Prompt | Arguments | Description |
+|---|---|---|
+| `query_guidance` | `vocabulary` (required), `task` (`explore`, `resolve`, `hierarchy`, `related`, `search`, `all`), `lang` | Curated guidance for common SKOS tasks |
+
+## Deprecations
+
+Several read tools are deprecated in favour of the resources and prompt above. They still work, and their descriptions start with `DEPRECATED`. They will be removed in 1.0:
+
+- `list_vocabularies`, `get_vocabulary`, `get_concept`, `get_concept_label`, `labels`
+- `vocabulary_schema_overview`, `query_guidance`, `suggest_sparql_templates`, `sparql_query_templates`
+- `broader_concepts`, `narrower_concepts`, `related_concepts` (use `traverse_concepts` with `relationships`)
+
+`execute_sparql_update` is marked destructive (`destructiveHint`). Read-only tools are marked `readOnlyHint`.
 
 ---
 

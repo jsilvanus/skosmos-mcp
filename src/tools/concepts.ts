@@ -3,6 +3,7 @@ import type { SkosmosClient } from '../api/client.js';
 import type { CacheManager } from '../cache/index.js';
 import type { Config } from '../config/index.js';
 import { CacheKeys } from '../cache/keys.js';
+import type { ConceptDetails } from '../models/index.js';
 import { ApiError } from '../util/errors.js';
 import { getClient } from './utils.js';
 
@@ -30,7 +31,7 @@ export const conceptPathSchema = z.object({
 export async function handleGetConcept(
   args: z.infer<typeof getConceptSchema>,
   client: SkosmosClient,
-  _cache: CacheManager,
+  cache: CacheManager,
   config: Config,
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   const lang = args.lang ?? config.defaultLanguage;
@@ -38,6 +39,12 @@ export async function handleGetConcept(
 
   if (!vocid) {
     throw new ApiError('vocabulary parameter is required when SKOSMOS_DEFAULT_VOCABULARY is not set', 400);
+  }
+
+  const cacheKey = CacheKeys.concept(args.uri, vocid, lang, args.server_url);
+  const cached = cache.concept.get(cacheKey);
+  if (cached) {
+    return { content: [{ type: 'text', text: JSON.stringify(cached) }] };
   }
 
   const activeClient = getClient(client, config, args.server_url);
@@ -49,7 +56,7 @@ export async function handleGetConcept(
     activeClient.getRelated(vocid, args.uri, lang),
   ]);
 
-  const result = {
+  const result: ConceptDetails = {
     uri: args.uri,
     prefLabel: labelRes.prefLabel,
     altLabel: labelRes.altLabel,
@@ -57,6 +64,7 @@ export async function handleGetConcept(
     narrower: narrowerRes.narrower ?? [],
     related: relatedRes.related ?? [],
   };
+  cache.concept.set(cacheKey, result);
   return { content: [{ type: 'text', text: JSON.stringify(result) }] };
 }
 

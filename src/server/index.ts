@@ -41,6 +41,11 @@ import {
   handleSparqlTemplates,
 } from '../tools/sparql.js';
 import { registerResources } from './resources.js';
+import { registerPrompts } from './prompts.js';
+import { registerReadTool, registerWriteTool } from './registration.js';
+import { createRequire } from 'node:module';
+
+const { version: SERVER_VERSION } = createRequire(import.meta.url)('../../package.json') as { version: string };
 
 function translateError(err: unknown): McpError {
   if (err instanceof NotFoundError) {
@@ -82,14 +87,15 @@ export function createServer(
 ): McpServer {
   const server = new McpServer({
     name: 'skosmos-mcp',
-    version: '0.1.0',
+    version: SERVER_VERSION,
   });
 
   // --- Vocabulary tools ---
 
-  server.tool(
+  registerReadTool(
+    server,
     'list_vocabularies',
-    'List all available vocabularies in the Skosmos instance',
+    'DEPRECATED (use resource skosmos://vocabularies; removed in 1.0). List all available vocabularies in the Skosmos instance',
     {
       lang: z.string().optional().describe('Language code for labels (e.g. "en", "fi")'),
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
@@ -97,9 +103,10 @@ export function createServer(
     wrapHandler(async (args) => handleListVocabularies(args, client, cacheManager, config)),
   );
 
-  server.tool(
+  registerReadTool(
+    server,
     'get_vocabulary',
-    'Get details of a specific vocabulary including top concepts',
+    'DEPRECATED (use resource skosmos://{vocid}; removed in 1.0). Get details of a specific vocabulary including top concepts',
     {
       id: z.string().min(1).describe('Vocabulary identifier (e.g. "stw", "yso")'),
       lang: z.string().optional().describe('Language code for labels'),
@@ -110,9 +117,10 @@ export function createServer(
 
   // --- Concept tools ---
 
-  server.tool(
+  registerReadTool(
+    server,
     'get_concept',
-    'Get full concept details including broader, narrower, and related concepts',
+    'DEPRECATED (use resource skosmos://{vocid}/{encodedUri}; removed in 1.0). Get full concept details including broader, narrower, and related concepts',
     {
       uri: z.string().url().describe('Concept URI'),
       vocabulary: z.string().optional().describe('Vocabulary identifier'),
@@ -122,9 +130,10 @@ export function createServer(
     wrapHandler(async (args) => handleGetConcept(args, client, cacheManager, config)),
   );
 
-  server.tool(
+  registerReadTool(
+    server,
     'get_concept_label',
-    'Get all labels (prefLabel, altLabel, hiddenLabel) for a concept URI',
+    'DEPRECATED (use resource skosmos://{vocid}/{encodedUri}/labels; removed in 1.0). Get all labels (prefLabel, altLabel, hiddenLabel) for a concept URI',
     {
       uri: z.string().url().describe('Concept URI'),
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
@@ -134,7 +143,8 @@ export function createServer(
     wrapHandler(async (args) => handleGetConceptLabel(args, client, cacheManager, config)),
   );
 
-  server.tool(
+  registerReadTool(
+    server,
     'concept_path',
     'Get the hierarchy path from a concept to its root via broader transitive relations',
     {
@@ -148,7 +158,8 @@ export function createServer(
 
   // --- Search tools ---
 
-  server.tool(
+  registerReadTool(
+    server,
     'search_concepts',
     'Full-text search for concepts across one or all vocabularies',
     {
@@ -162,7 +173,8 @@ export function createServer(
     wrapHandler(async (args) => handleSearchConcepts(args, client, cacheManager, config)),
   );
 
-  server.tool(
+  registerReadTool(
+    server,
     'autocomplete',
     'Autocomplete concept labels by prefix',
     {
@@ -175,7 +187,8 @@ export function createServer(
     wrapHandler(async (args) => handleAutocomplete(args, client, cacheManager, config)),
   );
 
-  server.tool(
+  registerReadTool(
+    server,
     'resolve_label',
     'Resolve a label text to concepts in a vocabulary',
     {
@@ -189,9 +202,10 @@ export function createServer(
 
   // --- Labels tool ---
  
-  server.tool(
+  registerReadTool(
+    server,
     'labels',
-    'Get all labels for a concept URI in a vocabulary',
+    'DEPRECATED (use resource skosmos://{vocid}/{encodedUri}/labels; removed in 1.0). Get all labels for a concept URI in a vocabulary',
     {
       uri: z.string().url().describe('Concept URI'),
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
@@ -203,9 +217,10 @@ export function createServer(
  
   // --- Assistance tools ---
  
-  server.tool(
+  registerReadTool(
+    server,
     'vocabulary_schema_overview',
-    'Summarize a vocabulary structure with entry points, relationship hints, and suggested tasks',
+    'DEPRECATED (use resource skosmos-overview://{vocid}; removed in 1.0). Summarize a vocabulary structure with entry points, relationship hints, and suggested tasks',
     {
       id: z.string().min(1).describe('Vocabulary identifier'),
       lang: z.string().optional().describe('Language code'),
@@ -216,9 +231,10 @@ export function createServer(
     wrapHandler(async (args) => handleVocabularySchemaOverview(args, client, cacheManager, config)),
   );
  
-  server.tool(
+  registerReadTool(
+    server,
     'query_guidance',
-    'Return curated guidance for common SKOS vocabulary tasks such as exploration, label resolution, or hierarchy traversal',
+    'DEPRECATED (use prompt query_guidance; removed in 1.0). Return curated guidance for common SKOS vocabulary tasks such as exploration, label resolution, or hierarchy traversal',
     {
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
       task: z
@@ -231,7 +247,8 @@ export function createServer(
     wrapHandler(async (args) => handleQueryGuidance(args, client, cacheManager, config)),
   );
  
-  server.tool(
+  registerReadTool(
+    server,
     'reconcile_concept',
     'Resolve a label to one or more concept candidates using Skosmos lookup and search',
     {
@@ -245,9 +262,10 @@ export function createServer(
     wrapHandler(async (args) => handleReconcileConcept(args, client, cacheManager, config)),
   );
  
-  server.tool(
+  registerReadTool(
+    server,
     'suggest_sparql_templates',
-    'Return SKOS-oriented SPARQL templates for exploration, hierarchy tracing, labels, and related concepts',
+    'DEPRECATED (use resource skosmos-sparql://templates/{category}; removed in 1.0). Return SKOS-oriented SPARQL templates for exploration, hierarchy tracing, labels, and related concepts',
     {
       vocabulary: z.string().optional().describe('Optional vocabulary identifier to include in the result'),
       task: z
@@ -260,9 +278,10 @@ export function createServer(
  
   // --- Traversal tools ---
 
-  server.tool(
+  registerReadTool(
+    server,
     'broader_concepts',
-    'BFS traversal of broader (parent) concepts up to a specified depth',
+    'DEPRECATED (use tool traverse_concepts with relationships ["broader"]; removed in 1.0). BFS traversal of broader (parent) concepts up to a specified depth',
     {
       uri: z.string().url().describe('Starting concept URI'),
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
@@ -276,9 +295,10 @@ export function createServer(
     ),
   );
 
-  server.tool(
+  registerReadTool(
+    server,
     'narrower_concepts',
-    'BFS traversal of narrower (child) concepts down to a specified depth',
+    'DEPRECATED (use tool traverse_concepts with relationships ["narrower"]; removed in 1.0). BFS traversal of narrower (child) concepts down to a specified depth',
     {
       uri: z.string().url().describe('Starting concept URI'),
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
@@ -292,9 +312,10 @@ export function createServer(
     ),
   );
 
-  server.tool(
+  registerReadTool(
+    server,
     'related_concepts',
-    'BFS traversal of related concepts up to a specified depth',
+    'DEPRECATED (use tool traverse_concepts with relationships ["related"]; removed in 1.0). BFS traversal of related concepts up to a specified depth',
     {
       uri: z.string().url().describe('Starting concept URI'),
       vocabulary: z.string().min(1).describe('Vocabulary identifier'),
@@ -308,7 +329,8 @@ export function createServer(
     ),
   );
 
-  server.tool(
+  registerReadTool(
+    server,
     'traverse_concepts',
     'BFS traversal using a mix of broader, narrower, and/or related relationships',
     {
@@ -330,43 +352,10 @@ export function createServer(
 
   // --- SPARQL tools ---
 
-  server.tool(
+  registerReadTool(
+    server,
     'execute_sparql_query',
-    `Execute a SPARQL query against a SPARQL endpoint (SELECT, CONSTRUCT, ASK, or DESCRIBE).
-
-SPARQL (SPARQL Protocol and RDF Query Language) is a query language for RDF data.
-
-Key SPARQL Query Forms:
-- SELECT: Returns variable bindings as a table
-- CONSTRUCT: Returns RDF triples
-- ASK: Returns true/false
-- DESCRIBE: Returns RDF description of resources
-
-Basic SPARQL Syntax:
-- PREFIX declarations: PREFIX ex: <http://example.org/>
-- WHERE clause with triple patterns: ?subject ?predicate ?object
-- Optional patterns: OPTIONAL { ?s ?p ?o }
-- Filters: FILTER(?var > 10)
-- Graph patterns: GRAPH <uri> { ?s ?p ?o }
-- Property paths: ?s ex:knows/ex:friend ?o (sequence), ?s ex:knows* ?o (zero or more)
-
-Common Query Templates:
-1. Basic exploration: SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10
-2. Count triples: SELECT (COUNT(*) as ?count) WHERE { ?s ?p ?o }
-3. List types: SELECT DISTINCT ?type WHERE { ?s a ?type }
-4. Property path: SELECT ?person ?friend WHERE { ?person foaf:knows/foaf:knows ?friend }
-5. Optional properties: SELECT ?s ?name WHERE { ?s a ex:Person . OPTIONAL { ?s foaf:name ?name } }
-6. Named graph query: SELECT ?s ?p ?o FROM NAMED <graph> WHERE { GRAPH <graph> { ?s ?p ?o } }
-7. Filter by value: SELECT ?s WHERE { ?s ex:age ?age . FILTER(?age > 18) }
-
-Property Path Operators:
-- / (sequence): ?s foaf:knows/foaf:name ?name
-- | (alternative): ?s (foaf:name|rdfs:label) ?name
-- * (zero or more): ?s foaf:knows* ?connected
-- + (one or more): ?s ex:partOf+ ?container
-- ? (zero or one): ?s foaf:knows? ?maybeKnown
-- ^ (inverse): ?s ^ex:hasChild ?parent
-- ! (negation): ?s !(rdf:type) ?notType`,
+    'Execute a SPARQL query (SELECT, CONSTRUCT, ASK, or DESCRIBE) against a SPARQL endpoint. Syntax reference and examples: resource skosmos-sparql://reference.',
     {
       query: z.string().describe('The SPARQL query to execute'),
       endpoint: z.string().url().optional().describe('Optional custom SPARQL endpoint URL'),
@@ -376,30 +365,10 @@ Property Path Operators:
     ),
   );
 
-  server.tool(
+  registerWriteTool(
+    server,
     'execute_sparql_update',
-    `Execute a SPARQL update query against a SPARQL endpoint.
-
-SPARQL Update Operations:
-- INSERT DATA: Add triples to the dataset
-- DELETE DATA: Remove specific triples
-- INSERT/DELETE WHERE: Conditional insert/delete based on patterns
-- LOAD/CLEAR: Load/clear entire graphs
-- CREATE/DROP: Manage graph lifecycle
-
-Basic Update Syntax:
-- INSERT DATA { <subject> <predicate> <object> }
-- DELETE DATA { <subject> <predicate> <object> }
-- INSERT { ?s <new:prop> "value" } WHERE { ?s <old:prop> ?o }
-- DELETE { ?s <old:prop> ?o } WHERE { ?s <old:prop> ?o }
-- CLEAR GRAPH <graph-uri>
-
-Example Updates:
-1. Insert data: INSERT DATA { <ex:person1> foaf:name "John" ; ex:age 25 }
-2. Delete data: DELETE DATA { <ex:person1> ex:age 25 }
-3. Conditional update: DELETE { ?p ex:status "pending" } INSERT { ?p ex:status "active" } WHERE { ?p ex:status "pending" }
-4. Insert with graph: INSERT DATA { GRAPH <ex:metadata> { <ex:dataset1> dcterms:created "2024-01-01"^^xsd:date } }
-5. Clear graph: CLEAR GRAPH <ex:temporary>`,
+    'DESTRUCTIVE: executes a SPARQL update (INSERT, DELETE, LOAD, CLEAR, ...) against a SPARQL endpoint. Syntax reference and examples: resource skosmos-sparql://reference.',
     {
       update: z.string().describe('The SPARQL update query to execute'),
       endpoint: z.string().url().optional().describe('Optional custom SPARQL endpoint URL'),
@@ -409,23 +378,10 @@ Example Updates:
     ),
   );
 
-  server.tool(
+  registerReadTool(
+    server,
     'list_sparql_graphs',
-    `List all available named graphs in a SPARQL endpoint.
-
-Named graphs in RDF provide context and provenance for triples. Each graph is identified by a URI.
-
-Common Graph Patterns:
-- Default graph (unnamed): Contains triples not in any specific graph
-- Named graphs: <http://example.org/graph1>, <http://data.gov/dataset1>
-- Metadata graphs: Often contain information about other graphs
-- Versioned graphs: <http://data.org/v1>, <http://data.org/v2>
-
-Use Cases:
-- Data provenance: Track where data came from
-- Temporal data: Different time periods in separate graphs
-- Access control: Different permissions per graph
-- Data quality: Separate validated vs raw data`,
+    'List the named graphs in a SPARQL endpoint. Graph conventions: resource skosmos-sparql://reference.',
     {
       endpoint: z.string().url().optional().describe('Optional custom SPARQL endpoint URL'),
     },
@@ -434,18 +390,10 @@ Use Cases:
     ),
   );
 
-  server.tool(
+  registerReadTool(
+    server,
     'sparql_query_templates',
-    `Get SPARQL query templates for common knowledge graph exploration patterns.
-
-This tool provides pre-built SPARQL query templates covering:
-- Basic data exploration and statistics
-- Property path navigation for complex relationships
-- Knowledge graph analysis patterns
-- Data validation and quality checks
-- Schema discovery and documentation
-
-Templates include explanations and can be customized with your specific URIs and requirements.`,
+    'DEPRECATED (use resource skosmos-sparql://templates/{category}; removed in 1.0). Get SPARQL query templates for common SKOS exploration patterns.',
     {
       category: z
         .enum(['exploration', 'property-paths', 'statistics', 'validation', 'schema', 'all'])
@@ -454,8 +402,9 @@ Templates include explanations and can be customized with your specific URIs and
     wrapHandler(async (args) => handleSparqlTemplates(args)),
   );
 
-  // Register resources
+  // Register resources and prompts
   registerResources(server, client, cacheManager, config);
+  registerPrompts(server);
 
   return server;
 }
