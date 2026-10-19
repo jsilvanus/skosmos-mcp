@@ -42,6 +42,7 @@ import {
 } from '../tools/sparql.js';
 import { registerResources } from './resources.js';
 import { registerPrompts } from './prompts.js';
+import { outputSchemas } from './output-schemas.js';
 import { registerReadTool, registerWriteTool } from './registration.js';
 import { createRequire } from 'node:module';
 
@@ -64,14 +65,31 @@ function translateError(err: unknown): McpError {
   return new McpError(ErrorCode.InternalError, 'Unknown error');
 }
 
-type ToolResult = { content: Array<{ type: 'text'; text: string }> };
+type ToolResult = { content: Array<{ type: 'text'; text: string }>; structuredContent?: Record<string, unknown> };
+
+/**
+ * Adds structuredContent when the text is a JSON object, so tools with an outputSchema can validate it.
+ */
+function withStructuredContent(result: ToolResult): ToolResult {
+  const text = result.content[0]?.text;
+  if (text === undefined || result.structuredContent) return result;
+  try {
+    const parsed: unknown = JSON.parse(text);
+    if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return { ...result, structuredContent: parsed as Record<string, unknown> };
+    }
+  } catch {
+    // Not JSON (for example the SPARQL update confirmation): return the text unchanged.
+  }
+  return result;
+}
 
 function wrapHandler<T extends Record<string, unknown>>(
   handler: (args: T) => Promise<ToolResult>,
 ): (args: T) => Promise<ToolResult> {
   return async (args: T): Promise<ToolResult> => {
     try {
-      return await handler(args);
+      return withStructuredContent(await handler(args));
     } catch (err) {
       logger.error('Tool handler error', { error: err instanceof Error ? err.message : String(err) });
       throw translateError(err);
@@ -101,6 +119,7 @@ export function createServer(
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleListVocabularies(args, client, cacheManager, config)),
+    outputSchemas.list_vocabularies,
   );
 
   registerReadTool(
@@ -113,6 +132,7 @@ export function createServer(
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleGetVocabulary(args, client, cacheManager, config)),
+    outputSchemas.get_vocabulary,
   );
 
   // --- Concept tools ---
@@ -128,6 +148,7 @@ export function createServer(
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleGetConcept(args, client, cacheManager, config)),
+    outputSchemas.get_concept,
   );
 
   registerReadTool(
@@ -141,6 +162,7 @@ export function createServer(
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleGetConceptLabel(args, client, cacheManager, config)),
+    outputSchemas.get_concept_label,
   );
 
   registerReadTool(
@@ -154,6 +176,7 @@ export function createServer(
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleConceptPath(args, client, cacheManager, config)),
+    outputSchemas.concept_path,
   );
 
   // --- Search tools ---
@@ -171,6 +194,7 @@ export function createServer(
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleSearchConcepts(args, client, cacheManager, config)),
+    outputSchemas.search_concepts,
   );
 
   registerReadTool(
@@ -185,6 +209,7 @@ export function createServer(
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleAutocomplete(args, client, cacheManager, config)),
+    outputSchemas.autocomplete,
   );
 
   registerReadTool(
@@ -198,6 +223,7 @@ export function createServer(
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleResolveLabel(args, client, cacheManager, config)),
+    outputSchemas.resolve_label,
   );
 
   // --- Labels tool ---
@@ -213,6 +239,7 @@ export function createServer(
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleLabels(args, client, cacheManager, config)),
+    outputSchemas.labels,
   );
  
   // --- Assistance tools ---
@@ -229,6 +256,7 @@ export function createServer(
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleVocabularySchemaOverview(args, client, cacheManager, config)),
+    outputSchemas.vocabulary_schema_overview,
   );
  
   registerReadTool(
@@ -245,6 +273,7 @@ export function createServer(
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleQueryGuidance(args, client, cacheManager, config)),
+    outputSchemas.query_guidance,
   );
  
   registerReadTool(
@@ -260,6 +289,7 @@ export function createServer(
       server_url: z.string().url().optional().describe('Optional Skosmos server URL (if enabled)'),
     },
     wrapHandler(async (args) => handleReconcileConcept(args, client, cacheManager, config)),
+    outputSchemas.reconcile_concept,
   );
  
   registerReadTool(
@@ -274,6 +304,7 @@ export function createServer(
         .describe('Task category for the returned templates'),
     },
     wrapHandler(async (args) => handleSuggestSparqlTemplates(args)),
+    outputSchemas.suggest_sparql_templates,
   );
  
   // --- Traversal tools ---
@@ -293,6 +324,7 @@ export function createServer(
     wrapHandler(async (args) =>
       handleBroaderConcepts(args, client, cacheManager, config, traversalEngine),
     ),
+    outputSchemas.broader_concepts,
   );
 
   registerReadTool(
@@ -310,6 +342,7 @@ export function createServer(
     wrapHandler(async (args) =>
       handleNarrowerConcepts(args, client, cacheManager, config, traversalEngine),
     ),
+    outputSchemas.narrower_concepts,
   );
 
   registerReadTool(
@@ -327,6 +360,7 @@ export function createServer(
     wrapHandler(async (args) =>
       handleRelatedConcepts(args, client, cacheManager, config, traversalEngine),
     ),
+    outputSchemas.related_concepts,
   );
 
   registerReadTool(
@@ -348,6 +382,7 @@ export function createServer(
     wrapHandler(async (args) =>
       handleTraverseConcepts(args, client, cacheManager, config, traversalEngine),
     ),
+    outputSchemas.traverse_concepts,
   );
 
   // --- SPARQL tools ---
@@ -363,6 +398,7 @@ export function createServer(
     wrapHandler(async (args) =>
       handleExecuteSparqlQuery(args, config.sparqlEndpoint, config.sparqlUsername, config.sparqlPassword, config.sparqlAllowOtherEndpoints, config.userAgent),
     ),
+    outputSchemas.execute_sparql_query,
   );
 
   registerWriteTool(

@@ -153,3 +153,50 @@ describe('MCP v2 server surface', () => {
     expect(message.text).toContain('"guidance"');
   });
 });
+
+describe('MCP v2 output schemas', () => {
+  let config: Config;
+
+  beforeAll(() => {
+    process.env['SKOSMOS_BASE_URL'] = 'https://api.example.org';
+    process.env['SPARQL_ENDPOINT_URL'] = 'https://api.example.org/sparql';
+    config = loadConfig();
+  });
+
+  it('declares outputSchema only for tools that return a JSON object', async () => {
+    const { client } = await connect(config, fakeSkosmosClient());
+    const { tools } = await client.listTools();
+    const byName = new Map(tools.map((tool) => [tool.name, tool]));
+
+    expect(byName.get('get_concept')?.outputSchema?.type).toBe('object');
+    expect(byName.get('traverse_concepts')?.outputSchema?.type).toBe('object');
+    expect(byName.get('execute_sparql_query')?.outputSchema?.type).toBe('object');
+    expect(byName.get('list_sparql_graphs')?.outputSchema).toBeUndefined();
+    expect(byName.get('execute_sparql_update')?.outputSchema).toBeUndefined();
+  });
+
+  it('returns structuredContent that matches the get_concept output schema', async () => {
+    const { client } = await connect(config, fakeSkosmosClient());
+    const result = await client.callTool({ name: 'get_concept', arguments: { uri: CONCEPT, vocabulary: 'yso' } });
+
+    expect(result.structuredContent).toMatchObject({ uri: CONCEPT, prefLabel: 'ihmiset' });
+    expect(result.content).toEqual([{ type: 'text', text: expect.stringContaining(CONCEPT) }]);
+  });
+
+  it('returns structuredContent for a traversal', async () => {
+    const { client } = await connect(config, fakeSkosmosClient());
+    const result = await client.callTool({
+      name: 'broader_concepts',
+      arguments: { uri: CONCEPT, vocabulary: 'yso', depth: 1 },
+    });
+
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({ rootUri: CONCEPT, nodes: expect.any(Array) });
+  });
+
+  it('leaves the SPARQL update result as plain text', async () => {
+    const { client } = await connect(config, fakeSkosmosClient());
+    const { tools } = await client.listTools();
+    expect(tools.find((tool) => tool.name === 'execute_sparql_update')?.outputSchema).toBeUndefined();
+  });
+});
