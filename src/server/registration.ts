@@ -14,8 +14,13 @@ export function registerReadTool<Shape extends ZodRawShape>(
   description: string,
   inputSchema: Shape,
   handler: ToolCallback<Shape>,
+  outputSchema?: ZodRawShape,
 ): void {
-  server.registerTool(name, { description, inputSchema, annotations: READ_ONLY }, handler);
+  server.registerTool(
+    name,
+    { description, inputSchema, annotations: READ_ONLY, ...(outputSchema && { outputSchema }) },
+    handler,
+  );
 }
 
 export function registerWriteTool<Shape extends ZodRawShape>(

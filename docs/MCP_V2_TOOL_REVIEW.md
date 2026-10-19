@@ -85,13 +85,13 @@ Plumbing:
 - [x] Vocabulary resource template has a `list` callback. The concept template does not, because enumerating every concept is not feasible.
 - [x] Concept resource and `get_concept` share one handler, so they return the same fields. Concept results are cached (`cache.concept`), so repeated reads are cheap. The first read still makes four upstream calls.
 - [x] SPARQL syntax text moved out of tool descriptions into `skosmos-sparql://reference`. Each tool description is now under 400 characters, enforced by a test.
-- [ ] `outputSchema` for tools with JSON results. Deferred. It needs a zod schema per response type, which is a separate piece of work. The handlers already return JSON text, so this can follow without changing the tool names.
+- [x] `outputSchema` for tools that return a JSON object (see `src/server/output-schemas.ts`). The JSON text is also sent as `structuredContent`. Fields that come unchanged from the endpoint are optional, so the schemas name the fields the server relies on. Tools that return an array or plain text have no output schema: `list_sparql_graphs`, `sparql_query_templates`, `execute_sparql_update`.
 
 Resources and prompts added: `skosmos://{vocid}/{encodedUri}/labels`, `skosmos-overview://{vocid}`, `skosmos-sparql://templates/{category}`, `skosmos-sparql://reference`, and the `query_guidance` prompt. The `skosmos://vocabularies`, `skosmos://{vocid}` and `skosmos://{vocid}/{encodedUri}` resources already existed.
 
 The URIs differ from the proposal table in two places. The overview and SPARQL resources use their own schemes (`skosmos-overview://`, `skosmos-sparql://`), so they cannot collide with the two-segment concept template. The guidance resource became the `query_guidance` prompt, as decided above.
 
-Not done: a resource for `list_sparql_graphs` on the default endpoint. The tool stays as it is.
+Decided: `list_sparql_graphs` stays a tool, with no resource.
 
 Tests: `tests/server/mcp-v2.test.ts` connects an MCP client in memory to check the tool annotations, deprecation text, resource and template listings, the reference resource, concept reads, and the prompt.
 
