@@ -13,10 +13,10 @@ try {
     fs.unlinkSync(outputPath);
   }
 
-  // Use system zip command to create archive from within mcpb directory
-  // This ensures files are at the root of the archive, not under mcpb/
+  // Use system zip command to create archive from within mcpb directory.
+  // This ensures files are at the root of the archive, not under mcpb/.
   execSync(`cd "${mcpbDir}" && zip -r "${outputPath}" .`, { stdio: 'inherit' });
-  
+
   const stats = fs.statSync(outputPath);
   console.log(`✓ Created ${outputPath} (${stats.size} bytes)`);
   process.exit(0);

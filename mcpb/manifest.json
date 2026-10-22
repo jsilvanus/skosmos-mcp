@@ -22,10 +22,14 @@
     "mcp_config": {
       "command": "docker",
       "args": [
+        "compose",
+        "-f",
+        "docker-compose.yml",
         "run",
         "--rm",
         "-i",
-        "ghcr.io/jsilvanus/skosmos-mcp:stdio-latest"
+        "-T",
+        "skosmos-mcp"
       ],
       "env": {
         "SKOSMOS_BASE_URL": "${user_config.skosmos_base_url}",
